@@ -4,6 +4,10 @@ import { config } from './config/env.js';
 import categories from './routes/categories.js';
 import subcategories from './routes/subcategories.js';
 import artists from './routes/artists.js';
+import awards from './routes/awards.js';
+import exhibitions from './routes/exhibitions.js';
+import works from './routes/works.js';
+import contact from './routes/contact.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
 export const app = express();
@@ -13,5 +17,8 @@ app.get('/api/health', (_req, res) => res.json({ status: 'ok' }));
 app.use('/api/categories', categories);
 app.use('/api/subcategories', subcategories);
 app.use('/api/artists', artists);
+app.use('/api/awards', awards);
+app.use('/api/exhibitions', exhibitions);
+app.use('/api/works', works);
+app.use('/api/contact', contact);
 app.use(errorHandler);
-
