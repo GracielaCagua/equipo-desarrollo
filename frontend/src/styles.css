@@ -52,3 +52,19 @@ form textarea { min-height: 90px; resize: vertical; }
 footer { color: #837b74; font-size: .8rem; padding: 18px clamp(20px, 6vw, 88px); text-align: center; }
 @media (max-width: 700px) { .topbar { align-items: start; flex-direction: column; padding-top: 20px; } nav { width: 100%; } nav button { flex: 1; } .page-heading { align-items: start; flex-direction: column; } h2 { font-size: 1.8rem; } .content { width: calc(100% - 28px); padding-top: 28px; } .toolbar { flex-direction: column; } .toolbar .search, .filter { width: 100%; } .grid-two { grid-template-columns: 1fr; } }
 
+
+/* Autenticación y sesión (Desarrollador 1) */
+.session { display: flex; align-items: center; gap: 6px; margin-bottom: 25px; color: #6d6964; font-size: .9rem; flex-wrap: wrap; }
+.main-nav { background: #fff; border-bottom: 1px solid #e8e1da; padding: 0 clamp(20px, 6vw, 88px); flex-wrap: wrap; }
+.login-shell { min-height: 100vh; display: grid; place-items: center; padding: 24px 16px; }
+.login-card { width: min(420px, 100%); background: #fff; border: 1px solid #e8e1da; border-radius: 14px; padding: 36px 32px; display: grid; gap: 14px; }
+.login-card h1 { margin: 0; }
+.login-help { margin: 0; color: #77716c; }
+.login-card label, .card-form label { display: grid; gap: 6px; font-weight: 600; color: #4a4642; }
+.login-card input, .card-form input { border: 1px solid #dcd4cc; border-radius: 8px; padding: 11px 13px; }
+.login-card button:disabled { opacity: .7; cursor: wait; }
+.card-form { background: #fff; border: 1px solid #e8e1da; border-radius: 12px; padding: 24px; display: grid; gap: 14px; }
+.narrow { max-width: 520px; }
+small { color: #837b74; font-weight: 400; }
+.you { margin-left: 8px; }
+@media (max-width: 720px) { .topbar { flex-direction: column; align-items: start; } .session { margin-bottom: 12px; } }
