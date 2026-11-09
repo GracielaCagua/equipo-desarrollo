@@ -3,6 +3,7 @@
 > Arquitectura, modelo de datos, autenticación y roles: [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md) ·
 > Convenciones de API: [docs/API_CONVENCIONES.md](docs/API_CONVENCIONES.md) ·
 > Entorno y despliegue: [docs/DESPLIEGUE.md](docs/DESPLIEGUE.md) ·
+> Integración frontend: [docs/INTEGRACION_FRONTEND.md](docs/INTEGRACION_FRONTEND.md) ·
 > Flujo Git: [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ## Módulo de categorías, subcategorías y artistas
@@ -37,7 +38,7 @@ Requisitos: Node.js 20+, npm y PostgreSQL 14+ (o `docker compose up -d`).
 5. Cree el primer superadministrador: `npm run db:seed-admin`.
 6. Inicie la API: `npm run dev:backend`.
 7. En otra terminal, inicie el frontend: `npm run dev:frontend`.
-8. Abra `http://localhost:5173` e inicie sesión.
+8. Abra `http://localhost:5173`.
 
 También puede definir `frontend/.env` con `VITE_API_URL` si la API no está en `http://localhost:3000/api`.
 

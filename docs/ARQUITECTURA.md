@@ -183,7 +183,7 @@ app.use('/api/categories', protectWrites(PERMISSIONS.CATALOG_WRITE), categories)
 app.use('/api/admin-users', protectAll(PERMISSIONS.USERS_MANAGE), adminUsers);      // todo protegido
 ```
 
-En el frontend, `AuthProvider` mantiene la sesión (token en `sessionStorage`); `App.jsx` muestra el login si no hay sesión y filtra las páginas del panel por permiso. Ante un `401` el cliente cierra la sesión automáticamente.
+La pantalla de login y el manejo de sesión en el frontend corresponden al panel administrativo (Desarrollador 4). Guía de integración: [docs/INTEGRACION_FRONTEND.md](INTEGRACION_FRONTEND.md).
 
 ### Limitaciones conocidas
 
@@ -197,5 +197,5 @@ En el frontend, `AuthProvider` mantiene la sesión (token en `sessionStorage`); 
 | Obras / multimedia (Dev 2) | `feature/backend-obras` | `protectWrites(PERMISSIONS.WORKS_WRITE)` |
 | Categorías y artistas (Dev 3) | `feature/categorias-artistas` | Ya protegido con `CATALOG_WRITE` |
 | Premios, exposiciones, contacto | `feature/modulos-especiales` | awards/exhibitions: `protectWrites(PERMISSIONS.EVENTS_WRITE)`; contacto: `POST /` público y `/messages` con `protectAll(PERMISSIONS.MESSAGES_MANAGE)` |
-| Panel admin (Dev 4) | — | Registrar páginas en `PAGES` de `App.jsx` con su permiso |
+| Panel admin (Dev 4) | — | Login y envío del token según [INTEGRACION_FRONTEND.md](INTEGRACION_FRONTEND.md) |
 | Sitio público (Dev 5) | — | Solo endpoints `GET`; no necesita token |

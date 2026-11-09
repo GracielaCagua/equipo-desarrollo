@@ -52,7 +52,7 @@ En código: `throw new HttpError(400, 'title es obligatorio')` dentro de servici
 - **Lecturas públicas** (catálogo visible en el sitio): montar con `protectWrites(PERMISSION)`.
 - **Módulos solo administrativos** (bandeja, usuarios, auditoría): `protectAll(PERMISSION)`.
 - Si una ruta necesita un permiso distinto al del router, encadenar `authenticate, requirePermission(...)` en esa ruta.
-- Un permiso nuevo se agrega **solo** en `backend/src/auth/permissions.js` y se replica la constante en `frontend/src/auth/permissions.js`.
+- Un permiso nuevo se agrega **solo** en `backend/src/auth/permissions.js`. El frontend lo recibe en `permissions` de `/api/auth/me` (ver [INTEGRACION_FRONTEND.md](INTEGRACION_FRONTEND.md)).
 
 ## Endpoints de autenticación
 
