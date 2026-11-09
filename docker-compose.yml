@@ -1,0 +1,22 @@
+# Base de datos local para desarrollo (opcional si ya tiene PostgreSQL instalado).
+#   docker compose up -d
+#   DATABASE_URL=postgresql://postgres:postgres@localhost:5432/repositorio_obras
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: repositorio_obras
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      retries: 10
+
+volumes:
+  pgdata:
