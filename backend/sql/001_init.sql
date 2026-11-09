@@ -4,8 +4,7 @@ CREATE TABLE IF NOT EXISTS categories (
   description TEXT,
   is_active BOOLEAN NOT NULL DEFAULT TRUE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  CONSTRAINT subcategories_id_category_unique UNIQUE (id, category_id)
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE IF NOT EXISTS subcategories (
@@ -15,7 +14,8 @@ CREATE TABLE IF NOT EXISTS subcategories (
   description TEXT,
   is_active BOOLEAN NOT NULL DEFAULT TRUE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CONSTRAINT subcategories_id_category_unique UNIQUE (id, category_id)
 );
 
 CREATE TABLE IF NOT EXISTS artists (
