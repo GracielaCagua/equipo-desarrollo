@@ -5,6 +5,8 @@ import categories from './routes/categories.js';
 import subcategories from './routes/subcategories.js';
 import artists from './routes/artists.js';
 import { errorHandler } from './middleware/errorHandler.js';
+import artworksRouter from './routes/artworks.js';
+import { UPLOAD_DIR } from './services/storage.js';
 
 export const app = express();
 app.use(cors({ origin: config.frontendUrl }));
@@ -13,5 +15,6 @@ app.get('/api/health', (_req, res) => res.json({ status: 'ok' }));
 app.use('/api/categories', categories);
 app.use('/api/subcategories', subcategories);
 app.use('/api/artists', artists);
+app.use('/api/works', artworksRouter);
+app.use('/uploads', express.static(UPLOAD_DIR));
 app.use(errorHandler);
-
