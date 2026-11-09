@@ -1,21 +1,15 @@
-import { useAuth } from '../auth/AuthContext.jsx';
-import { ROLE_LABELS } from '../auth/permissions.js';
+import { useState } from 'react';
 
-// links: [[clave, etiqueta], ...] ya filtrados por permisos en App.jsx
-export function Layout({ children, page, setPage, links }) {
-  const { user, logout } = useAuth();
+export function Layout({ children, page, setPage }) {
+  const links = [['categories', 'Categorías'], ['subcategories', 'Subcategorías'], ['artists', 'Artistas']];
   return (
     <div className="app-shell">
       <header className="topbar">
         <div><span className="eyebrow">Repositorio de obras</span><h1>Gestión artística</h1></div>
-        <div className="session">
-          <span><strong>{user.full_name}</strong> · {ROLE_LABELS[user.role] || user.role}</span>
-          <button className="link-button" onClick={() => setPage('account')}>Mi cuenta</button>
-          <button className="link-button" onClick={logout}>Cerrar sesión</button>
-        </div>
+        <nav>{links.map(([key, label]) => <button className={page === key ? 'nav-active' : ''} onClick={() => setPage(key)} key={key}>{label}</button>)}</nav>
       </header>
-      <nav className="main-nav">{links.map(([key, label]) => <button className={page === key ? 'nav-active' : ''} onClick={() => setPage(key)} key={key}>{label}</button>)}</nav>
       <main className="content">{children}</main>
+      <footer>Protección administrativa: integrar autenticación del Desarrollador 1 antes de producción.</footer>
     </div>
   );
 }
