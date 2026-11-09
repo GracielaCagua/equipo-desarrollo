@@ -37,3 +37,9 @@ app.use('/api/artists', protectWrites(PERMISSIONS.CATALOG_WRITE), artists);
 
 app.use('/api', notFound);
 app.use(errorHandler);
+app.use('/api/categories', categories);
+app.use('/api/subcategories', subcategories);
+app.use('/api/artists', artists);
+app.use('/api/works', artworksRouter);
+app.use('/uploads', express.static(UPLOAD_DIR));
+app.use(errorHandler);
