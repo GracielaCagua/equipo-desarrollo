@@ -10,6 +10,17 @@
 
 Módulo independiente para administrar la clasificación y los perfiles de artistas del repositorio universitario de obras. La API persiste las operaciones en PostgreSQL; no se usan datos ficticios.
 
+## Panel administrativo (Desarrollador 4)
+
+El panel administrativo vive en `admin/` como una SPA independiente (React 19 + Vite + TypeScript). Gestiona obras, archivos, categorías, subcategorías, estudiantes y graduados. Trae una API simulada en `localStorage` para trabajar sin backend y consume la API real al definir `VITE_USE_MOCK=false`. Detalles en [`admin/README.md`](admin/README.md).
+
+```bash
+npm run install:admin
+npm run dev:admin
+```
+
+Credenciales de demostración: `admin@repositorio.edu.co` / `admin123` y `editor@repositorio.edu.co` / `editor123`.
+
 ## Tecnologías
 
 - Node.js, Express y PostgreSQL.
@@ -19,6 +30,8 @@ Módulo independiente para administrar la clasificación y los perfiles de artis
 ## Estructura
 
 ```text
+admin/
+  src/api, auth, components, hooks, pages, styles, types, utils
 backend/
   src/config, db, middleware, routes, services, validators
   sql/001_init.sql
@@ -38,7 +51,8 @@ Requisitos: Node.js 20+, npm y PostgreSQL 14+ (o `docker compose up -d`).
 5. Cree el primer superadministrador: `npm run db:seed-admin`.
 6. Inicie la API: `npm run dev:backend`.
 7. En otra terminal, inicie el frontend: `npm run dev:frontend`.
-8. Abra `http://localhost:5173`.
+8. Opcional: inicie el panel administrativo con `npm run dev:admin`.
+9. Abra `http://localhost:5173`.
 
 También puede definir `frontend/.env` con `VITE_API_URL` si la API no está en `http://localhost:3000/api`.
 
