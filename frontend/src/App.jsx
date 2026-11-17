@@ -1,31 +1,9 @@
-import { useState } from 'react';
-import { Layout } from './components/Layout.jsx';
-import { CategoriesPage } from './pages/CategoriesPage.jsx';
-import { SubcategoriesPage } from './pages/SubcategoriesPage.jsx';
-import { ArtistsPage } from './pages/ArtistsPage.jsx';
-import { AwardsPage } from './pages/AwardsPage.jsx';
-import { ExhibitionsPage } from './pages/ExhibitionsPage.jsx';
-import { ExposedWorksPage } from './pages/ExposedWorksPage.jsx';
-import { CommercialStatusPage } from './pages/CommercialStatusPage.jsx';
-import { ContactPage } from './pages/ContactPage.jsx';
-import { MessagesInboxPage } from './pages/MessagesInboxPage.jsx';
-import { ArtworksPage } from './pages/ArtworksPage.jsx';
+import { useEffect } from 'react';
 
 export default function App() {
-  const [page, setPage] = useState('artworks');
+  useEffect(() => {
+    window.location.replace('/admin/login');
+  }, []);
 
-  return (
-    <Layout page={page} setPage={setPage}>
-      {page === 'categories' && <CategoriesPage />}
-      {page === 'subcategories' && <SubcategoriesPage />}
-      {page === 'artists' && <ArtistsPage />}
-      {page === 'artworks' && <ArtworksPage />}
-      {page === 'awards' && <AwardsPage />}
-      {page === 'exhibitions' && <ExhibitionsPage />}
-      {page === 'exposed-works' && <ExposedWorksPage />}
-      {page === 'commercial' && <CommercialStatusPage />}
-      {page === 'contact' && <ContactPage />}
-      {page === 'messages' && <MessagesInboxPage />}
-    </Layout>
-  );
+  return null;
 }
