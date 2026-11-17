@@ -15,7 +15,7 @@ export function PublicGallery() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([
+    Promise.allSettled([
       api.categories.list(),
       api.subcategories.list(),
       api.artists.list(),
@@ -23,13 +23,20 @@ export function PublicGallery() {
       api.exhibitions.list(),
       api.artworks.list({ publication_status: 'published' }),
     ])
-      .then(([categoryItems, subcategoryItems, artistItems, awardItems, exhibitionItems, workItems]) => {
-        setCategories(categoryItems.filter((item) => item.is_active));
-        setSubcategories(subcategoryItems);
-        setArtists(artistItems.filter((item) => item.academic_status));
-        setAwards(awardItems);
-        setExhibitions(exhibitionItems);
-        setWorks(Array.isArray(workItems) ? workItems : (workItems.data ?? []));
+      .then((results) => {
+        const value = (index) => results[index]?.status === 'fulfilled' ? results[index].value : [];
+        const categoryItems = value(0);
+        const subcategoryItems = value(1);
+        const artistItems = value(2);
+        const awardItems = value(3);
+        const exhibitionItems = value(4);
+        const workItems = value(5);
+        setCategories(Array.isArray(categoryItems) ? categoryItems.filter((item) => item.is_active) : []);
+        setSubcategories(Array.isArray(subcategoryItems) ? subcategoryItems : []);
+        setArtists(Array.isArray(artistItems) ? artistItems.filter((item) => item.academic_status) : []);
+        setAwards(Array.isArray(awardItems) ? awardItems : []);
+        setExhibitions(Array.isArray(exhibitionItems) ? exhibitionItems : []);
+        setWorks(Array.isArray(workItems) ? workItems : (workItems?.data ?? []));
       })
       .finally(() => setLoading(false));
   }, []);
