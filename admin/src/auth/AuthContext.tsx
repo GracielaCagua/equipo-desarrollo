@@ -9,6 +9,7 @@ interface AuthContextValue {
   token: string | null
   isAdmin: boolean
   login: (email: string, password: string) => Promise<void>
+  register: (fullName: string, email: string, password: string) => Promise<void>
   logout: () => void
   can: (permission: Permission) => boolean
 }
@@ -33,6 +34,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSession(next)
   }, [])
 
+  const register = useCallback(async (fullName: string, email: string, password: string) => {
+    const next = await authApi.register(fullName, email, password)
+    saveSession(next)
+    setSession(next)
+  }, [])
+
   const logout = useCallback(() => {
     clearSession()
     setSession(null)
@@ -42,12 +49,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     () => ({
       user: session?.user ?? null,
       token: session?.token ?? null,
-      isAdmin: session?.user.role === 'admin',
+      isAdmin: session?.user.role === 'admin' || session?.user.role === 'superadmin',
       login,
+      register,
       logout,
       can: (permission) => can(session?.user ?? null, permission),
     }),
-    [session, login, logout],
+    [session, login, register, logout],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

@@ -1,8 +1,19 @@
 export type PublishStatus = 'draft' | 'published' | 'archived'
 export type ArtistType = 'student' | 'graduate'
 export type ActiveStatus = 'active' | 'inactive'
-export type UserRole = 'admin' | 'editor'
+export type UserRole = 'superadmin' | 'admin' | 'editor'
 export type MediaKind = 'image' | 'video' | 'document'
+
+export interface AdminUser {
+  id: number
+  full_name: string
+  email: string
+  role: 'superadmin' | 'admin' | 'editor'
+  is_active: boolean
+  last_login_at?: string
+  created_at: string
+  updated_at: string
+}
 
 export interface User {
   id: string

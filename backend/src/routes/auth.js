@@ -8,6 +8,11 @@ import { asyncHandler } from '../utils/httpError.js';
 const router = Router();
 const limiter = createLoginLimiter({ maxAttempts: config.loginMaxAttempts, windowMs: config.loginWindowMinutes * 60000 });
 
+router.post('/register', asyncHandler(async (req, res) => {
+  const result = await service.registerUser(req.body, req.ip);
+  res.status(201).json(result);
+}));
+
 router.post('/login', limiter, asyncHandler(async (req, res) => {
   try {
     const result = await service.login(req.body, req.ip);

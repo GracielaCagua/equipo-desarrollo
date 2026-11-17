@@ -26,6 +26,11 @@ const daysAgo = (days: number): string => new Date(Date.now() - days * 86_400_00
 
 export const DEMO_USERS: Array<{ email: string; password: string; user: User }> = [
   {
+    email: 'admin',
+    password: 'admin123',
+    user: { id: 'user-admin', name: 'Admin', email: 'admin', role: 'superadmin' },
+  },
+  {
     email: 'admin@repositorio.edu.co',
     password: 'admin123',
     user: { id: 'user-admin', name: 'Ana María Ruiz', email: 'admin@repositorio.edu.co', role: 'admin' },

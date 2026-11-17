@@ -12,6 +12,7 @@ import type {
   PublishStatus,
   Subcategory,
   SubcategoryInput,
+  User,
 } from '../../types'
 import { currentYear } from '../../utils/format'
 import { readAsDataUrl, FILE_RULES } from '../../utils/files'
@@ -105,6 +106,26 @@ export async function mockRequest<T>(path: string, init: RequestInit = {}): Prom
     const session = { token: `demo-token-${found.user.id}-${Date.now()}`, user: found.user }
     saveSession(session)
     return { token: session.token, user: found.user } as T
+  }
+
+  if (route === '/auth/register' && method === 'POST') {
+    const { full_name, email, password } = json<{ full_name: string; email: string; password: string }>(init)
+    if (!full_name?.trim() || !email?.trim() || password?.length < 6) {
+      fail(400, 'Completa los datos y usa una contraseña de al menos 6 caracteres.')
+    }
+    const normalized = String(email).trim().toLowerCase()
+    if (DEMO_USERS.some((item) => item.email.toLowerCase() === normalized)) {
+      fail(409, 'Ya existe una cuenta con ese correo.')
+    }
+    const registeredUser: User = {
+      id: `user-${Date.now()}`,
+      name: full_name.trim(),
+      email: normalized,
+      role: 'editor',
+    }
+    const session = { token: `demo-token-${registeredUser.id}-${Date.now()}`, user: registeredUser }
+    saveSession(session)
+    return { token: session.token, user: registeredUser } as T
   }
 
   if (!getToken()) {

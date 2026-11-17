@@ -29,7 +29,17 @@ function qs(params: Record<string, string | number | boolean | undefined | null>
 export const authApi = {
   login: (email: string, password: string) =>
     request<Session>('/auth/login', { method: 'POST', body: { email, password } }),
+  register: (fullName: string, email: string, password: string) =>
+    request<Session>('/auth/register', { method: 'POST', body: { full_name: fullName, email, password } }),
   me: () => request<Session['user']>('/auth/me'),
+}
+
+export const usersApi = {
+  list: () => request<import('../types').AdminUser[]>('/admin-users'),
+  update: (id: number, input: { full_name: string; email: string; role: 'superadmin' | 'admin' | 'editor' }) =>
+    request<import('../types').AdminUser>(`/admin-users/${id}`, { method: 'PUT', body: input }),
+  setStatus: (id: number, is_active: boolean) =>
+    request<import('../types').AdminUser>(`/admin-users/${id}/status`, { method: 'PATCH', body: { is_active } }),
 }
 
 export const dashboardApi = {

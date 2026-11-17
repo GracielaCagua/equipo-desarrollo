@@ -10,6 +10,10 @@ export type Permission =
   | 'artists:delete'
 
 const PERMISSIONS: Record<UserRole, Permission[]> = {
+  superadmin: [
+    'artworks:write', 'artworks:delete', 'categories:write', 'subcategories:write',
+    'artists:write', 'artists:graduate', 'artists:delete',
+  ],
   admin: [
     'artworks:write',
     'artworks:delete',
@@ -28,6 +32,7 @@ export function can(user: User | null, permission: Permission): boolean {
 }
 
 export const ROLE_LABELS: Record<UserRole, string> = {
+  superadmin: 'Superadministrador',
   admin: 'Administrador',
   editor: 'Editor',
 }

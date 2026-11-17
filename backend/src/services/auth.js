@@ -11,6 +11,7 @@ const PUBLIC_FIELDS = 'id, full_name, email, role, is_active, last_login_at, cre
 export function toProfile(user) {
   return {
     id: user.id,
+    name: user.full_name,
     full_name: user.full_name,
     email: user.email,
     role: user.role,
@@ -19,8 +20,32 @@ export function toProfile(user) {
   };
 }
 
-export async function login(body, ip) {
+export async function registerUser(body, ip) {
+  const fullName = requiredText(body.full_name, 'full_name');
   const email = validateEmail(body.email);
+  const password = validatePasswordStrength(body.password);
+
+  try {
+    const { rows } = await query(
+      `INSERT INTO admin_users (full_name, email, password_hash, role)
+       VALUES ($1, $2, $3, 'editor')
+       RETURNING ${PUBLIC_FIELDS}`,
+      [fullName, email, await hashPassword(password)]
+    );
+    await logAction({ userId: rows[0].id, action: 'auth.register', ip });
+    return { token: signAccessToken(rows[0]), user: toProfile(rows[0]) };
+  } catch (error) {
+    if (error.code === '23505') throw new HttpError(409, 'Ya existe una cuenta con ese correo');
+    throw error;
+  }
+}
+
+export async function login(body, ip) {
+  const identifier = requiredText(body.email ?? body.username, 'email');
+  const normalized = identifier.toLowerCase();
+  const email = normalized === 'admin'
+    ? 'admin@localhost.local'
+    : validateEmail(identifier);
   const password = requiredText(body.password, 'password');
   const { rows } = await query('SELECT * FROM admin_users WHERE LOWER(email) = $1', [email]);
   const user = rows[0];

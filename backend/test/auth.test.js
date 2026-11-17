@@ -49,7 +49,7 @@ test('exige contraseñas robustas', () => {
 test('matriz de permisos por rol', () => {
   assert.deepEqual(ROLES, ['superadmin', 'admin', 'editor']);
   assert.ok(hasPermission('superadmin', PERMISSIONS.USERS_MANAGE));
-  assert.ok(!hasPermission('admin', PERMISSIONS.USERS_MANAGE));
+  assert.ok(hasPermission('admin', PERMISSIONS.USERS_MANAGE));
   assert.ok(hasPermission('admin', PERMISSIONS.MESSAGES_MANAGE));
   assert.ok(!hasPermission('editor', PERMISSIONS.MESSAGES_MANAGE));
   assert.ok(hasPermission('editor', PERMISSIONS.CATALOG_WRITE));
@@ -87,9 +87,9 @@ test('con token válido la escritura llega a la validación del módulo', async 
   assert.equal(res.status, 400);
 });
 
-test('administración de usuarios solo para superadmin', async () => {
+test('administración de usuarios disponible para superadmin y admin', async () => {
   assert.equal((await call('/admin-users')).status, 401);
-  assert.equal((await call('/admin-users', { token: tokenFor('admin') })).status, 403);
+  assert.equal((await call('/admin-users', { token: tokenFor('admin') })).status, 200);
   assert.equal((await call('/admin-users', { token: tokenFor('editor') })).status, 403);
   // Validación previa a la BD: el superadmin pasa los guardas y recibe 400 por datos incompletos.
   const res = await call('/admin-users', { method: 'POST', token: tokenFor('superadmin'), body: {} });

@@ -10,6 +10,7 @@ import { ArtworkFormPage } from './pages/artworks/ArtworkFormPage'
 import { CategoriesPage } from './pages/categories/CategoriesPage'
 import { SubcategoriesPage } from './pages/categories/SubcategoriesPage'
 import { ArtistsPage } from './pages/artists/ArtistsPage'
+import { UsersPage } from './pages/UsersPage'
 import { NotFoundPage } from './pages/NotFoundPage'
 
 export default function App() {
@@ -29,6 +30,7 @@ export default function App() {
                 <Route path="categorias" element={<CategoriesPage />} />
                 <Route path="subcategorias" element={<SubcategoriesPage />} />
                 <Route path="artistas" element={<ArtistsPage />} />
+                <Route path="usuarios" element={<UsersPage />} />
                 <Route path="*" element={<NotFoundPage />} />
               </Route>
             </Route>
