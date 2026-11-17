@@ -25,7 +25,7 @@ const PERMISSIONS: Record<UserRole, Permission[]> = {
     'artists:delete',
     'users:manage',
   ],
-  editor: ['artworks:write', 'artworks:delete'],
+  editor: [],
 }
 
 export function can(user: User | null, permission: Permission): boolean {
@@ -36,5 +36,5 @@ export function can(user: User | null, permission: Permission): boolean {
 export const ROLE_LABELS: Record<UserRole, string> = {
   superadmin: 'Superadministrador',
   admin: 'Administrador',
-  editor: 'Editor',
+  editor: 'Usuario',
 }

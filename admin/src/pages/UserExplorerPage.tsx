@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import { artworksApi, categoriesApi, subcategoriesApi, artistsApi } from '../api/services'
 import type { Artwork, Category, Subcategory, Artist } from '../types'
+import { useAuth } from '../auth/AuthContext'
 
 export function UserExplorerPage() {
+  const { user } = useAuth()
   const [artworks, setArtworks] = useState<Artwork[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [subcategories, setSubcategories] = useState<Subcategory[]>([])
@@ -13,6 +15,14 @@ export function UserExplorerPage() {
   const [search, setSearch] = useState('')
 
   useEffect(() => {
+    if (!user) {
+      window.location.replace('/login')
+      return
+    }
+    if (user.role !== 'editor') {
+      window.location.replace('/admin')
+      return
+    }
     Promise.all([
       artworksApi.list({ status: 'published', page: 1, limit: 100 }),
       categoriesApi.list({ active: true }),
@@ -24,7 +34,7 @@ export function UserExplorerPage() {
       setSubcategories(subcategoryItems)
       setArtists(artistItems.data)
     })
-  }, [])
+  }, [user])
 
   const filtered = useMemo(() => artworks.filter((work) => {
     const text = `${work.title} ${work.artist?.firstName ?? ''} ${work.artist?.lastName ?? ''}`.toLowerCase()

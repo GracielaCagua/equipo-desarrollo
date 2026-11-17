@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { API_URL, USE_MOCK } from '../../api/client'
 import { ROLE_LABELS } from '../../auth/permissions'
 import { useAuth } from '../../auth/AuthContext'
@@ -46,7 +46,6 @@ function sectionTitle(pathname: string): string {
 export function AdminLayout() {
   const { user, logout, can } = useAuth()
   const location = useLocation()
-  const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const title = sectionTitle(location.pathname)
 
@@ -57,7 +56,7 @@ export function AdminLayout() {
 
   const handleLogout = () => {
     logout()
-    navigate('/login', { replace: true })
+    window.location.replace('/login')
   }
 
   if (!user) return null

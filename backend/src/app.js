@@ -59,9 +59,11 @@ const publicDist = path.join(repositoryDir, 'frontend', 'dist');
 const adminDist = path.join(repositoryDir, 'admin', 'dist');
 
 if (fs.existsSync(adminDist)) {
-  app.use('/admin', express.static(adminDist));
+  app.use('/admin/assets', express.static(path.join(adminDist, 'assets')));
+  app.use('/admin/favicon.svg', express.static(path.join(adminDist, 'favicon.svg')));
   app.get('/login', (_req, res) => res.sendFile(path.join(adminDist, 'index.html')));
   app.get('/admin', (_req, res) => res.sendFile(path.join(adminDist, 'index.html')));
+  app.get('/admin/', (_req, res) => res.sendFile(path.join(adminDist, 'index.html')));
   app.get('/admin/*', (_req, res) => res.sendFile(path.join(adminDist, 'index.html')));
   app.get('/usuario', (_req, res) => res.sendFile(path.join(adminDist, 'index.html')));
   app.get('/usuario/*', (_req, res) => res.sendFile(path.join(adminDist, 'index.html')));
