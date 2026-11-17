@@ -1,4 +1,7 @@
 import express from 'express';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import fs from 'node:fs';
 import cors from 'cors';
 import { config } from './config/env.js';
 import { PERMISSIONS } from './auth/permissions.js';
@@ -48,4 +51,21 @@ app.use('/api/works', protectWrites(PERMISSIONS.WORKS_WRITE), works);
 app.use('/api/artworks', protectWrites(PERMISSIONS.WORKS_WRITE), artworks);
 app.use('/api/contact', contact);
 app.use('/api', notFound);
+
+const repositoryDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+const publicDist = path.join(repositoryDir, 'frontend', 'dist');
+const adminDist = path.join(repositoryDir, 'admin', 'dist');
+
+if (fs.existsSync(adminDist)) {
+  app.use('/admin', express.static(adminDist));
+  app.get('/login', (_req, res) => res.redirect('/admin/login'));
+  app.get('/admin', (_req, res) => res.redirect('/admin/login'));
+  app.get('/admin/*', (_req, res) => res.sendFile(path.join(adminDist, 'index.html')));
+}
+
+if (fs.existsSync(publicDist)) {
+  app.use(express.static(publicDist));
+  app.get('*', (_req, res) => res.sendFile(path.join(publicDist, 'index.html')));
+}
+
 app.use(errorHandler);

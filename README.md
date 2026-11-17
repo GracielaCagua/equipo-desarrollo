@@ -40,9 +40,10 @@ Requisitos: Node.js 18+, npm y PostgreSQL 14+.
 2. Para una instalación nueva, ejecute `backend/sql/001_init.sql`. Si ya tenía una base previa, ejecute `backend/sql/002_special_modules.sql`.
 3. Copie `backend/.env.example` a `backend/.env` y ajuste `DATABASE_URL` e `INSTITUTIONAL_EMAIL` (por defecto `contacto.repositorio@universidad.edu`).
 4. Instale dependencias: `npm run install:all`.
-5. Inicie la API backend: `npm run dev:backend`.
-6. En otra terminal, inicie el frontend: `npm run dev:frontend`.
-7. Abra `http://localhost:5173`.
+5. Inicie backend y frontend juntos: `npm run dev`.
+6. Abra el sitio público en `http://localhost:5173`.
+7. Abra el panel administrativo en `http://localhost:5173/login`.
+   También puede abrirse directamente en `http://localhost:3000/admin/login`.
 
 ## API REST
 
