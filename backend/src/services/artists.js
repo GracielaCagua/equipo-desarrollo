@@ -82,6 +82,27 @@ export async function updateAcademicStatus(id, academicStatus) {
   return rows[0];
 }
 
+export async function updateArtistStatus(id, status) {
+  if (!['active', 'inactive'].includes(status)) throw new HttpError(400, 'status debe ser active o inactive');
+  await query('ALTER TABLE artists ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT TRUE');
+  const { rows } = await query(
+    'UPDATE artists SET is_active = $1, updated_at = NOW() WHERE id = $2 RETURNING *',
+    [status === 'active', parseId(id)]
+  );
+  if (!rows[0]) throw new HttpError(404, 'Artista no encontrado');
+  return rows[0];
+}
+
+export async function deleteArtist(id) {
+  try {
+    const { rowCount } = await query('DELETE FROM artists WHERE id = $1', [parseId(id)]);
+    if (!rowCount) throw new HttpError(404, 'Artista no encontrado');
+  } catch (error) {
+    if (error.code === '23503') throw new HttpError(409, 'El artista tiene obras relacionadas');
+    throw error;
+  }
+}
+
 export async function listArtistWorks(id) {
   const artistId = parseId(id);
   await getArtist(artistId);
@@ -94,4 +115,3 @@ export async function listArtistWorks(id) {
   );
   return rows;
 }
-

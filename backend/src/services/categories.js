@@ -66,3 +66,12 @@ export async function setCategoryStatus(id, isActive) {
   return rows[0];
 }
 
+export async function deleteCategory(id) {
+  try {
+    const { rowCount } = await query('DELETE FROM categories WHERE id = $1', [parseId(id)]);
+    if (!rowCount) throw new HttpError(404, 'Categoría no encontrada');
+  } catch (error) {
+    if (error.code === '23503') throw new HttpError(409, 'La categoría tiene registros relacionados');
+    throw error;
+  }
+}

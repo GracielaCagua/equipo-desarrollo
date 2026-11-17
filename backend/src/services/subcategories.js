@@ -74,3 +74,12 @@ export async function setSubcategoryStatus(id, isActive) {
   return rows[0];
 }
 
+export async function deleteSubcategory(id) {
+  try {
+    const { rowCount } = await query('DELETE FROM subcategories WHERE id = $1', [parseId(id)]);
+    if (!rowCount) throw new HttpError(404, 'Subcategoría no encontrada');
+  } catch (error) {
+    if (error.code === '23503') throw new HttpError(409, 'La subcategoría tiene obras relacionadas');
+    throw error;
+  }
+}

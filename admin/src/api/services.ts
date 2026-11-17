@@ -2,6 +2,8 @@ import type {
   Artist,
   ArtistFilters,
   ArtistInput,
+  ArtistType,
+  ActiveStatus,
   Artwork,
   ArtworkFilters,
   ArtworkInput,
@@ -172,46 +174,140 @@ export const artworksApi = {
 
 export const categoriesApi = {
   list: (filters: { search?: string; active?: boolean } = {}, signal?: AbortSignal) =>
-    request<Category[]>(`/categories${qs({ search: filters.search, active: filters.active })}`, { signal }),
-  create: (input: CategoryInput) => request<Category>('/categories', { method: 'POST', body: input }),
-  update: (id: string, input: CategoryInput) => request<Category>(`/categories/${id}`, { method: 'PUT', body: input }),
+    request<Array<Record<string, unknown>>>(`/categories${qs({ search: filters.search })}`, { signal }).then((rows) =>
+      rows
+        .filter((row) => filters.active === undefined || Boolean(row.is_active) === filters.active)
+        .map((row) => ({
+          id: String(row.id),
+          name: String(row.name ?? ''),
+          slug: String(row.name ?? '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
+          description: String(row.description ?? ''),
+          color: '#6d4b8f',
+          active: Boolean(row.is_active),
+          createdAt: String(row.created_at ?? ''),
+          subcategoryCount: Number(row.subcategory_count ?? 0),
+          artworkCount: 0,
+        })),
+    ),
+  create: (input: CategoryInput) => request<Record<string, unknown>>('/categories', { method: 'POST', body: { name: input.name, description: input.description } }).then((row) => ({
+    id: String(row.id), name: String(row.name ?? ''), slug: input.slug, description: String(row.description ?? ''),
+    color: input.color, active: true, createdAt: String(row.created_at ?? ''),
+  })),
+  update: (id: string, input: CategoryInput) => request<Record<string, unknown>>(`/categories/${id}`, { method: 'PUT', body: { name: input.name, description: input.description } }).then((row) => ({
+    id: String(row.id), name: String(row.name ?? ''), slug: input.slug, description: String(row.description ?? ''),
+    color: input.color, active: Boolean(row.is_active), createdAt: String(row.created_at ?? ''),
+  })),
   remove: (id: string) => request<{ id: string }>(`/categories/${id}`, { method: 'DELETE' }),
   setActive: (id: string, active: boolean) =>
-    request<Category>(`/categories/${id}/status`, { method: 'PATCH', body: { active } }),
+    request<Record<string, unknown>>(`/categories/${id}/status`, { method: 'PATCH', body: { is_active: active } }).then((row) => ({
+      id: String(row.id), name: String(row.name ?? ''), slug: '', description: String(row.description ?? ''),
+      color: '#6d4b8f', active: Boolean(row.is_active), createdAt: String(row.created_at ?? ''),
+    })),
 }
 
 export const subcategoriesApi = {
   list: (filters: { search?: string; categoryId?: string; active?: boolean } = {}, signal?: AbortSignal) =>
-    request<Subcategory[]>(
-      `/subcategories${qs({ search: filters.search, categoryId: filters.categoryId, active: filters.active })}`,
+    request<Array<Record<string, unknown>>>(
+      `/subcategories${qs({ category_id: filters.categoryId })}`,
       { signal },
+    ).then((rows) => rows
+      .filter((row) => filters.active === undefined || Boolean(row.is_active) === filters.active)
+      .filter((row) => !filters.search || String(row.name ?? '').toLowerCase().includes(filters.search.toLowerCase()))
+      .map((row) => ({
+        id: String(row.id),
+        categoryId: String(row.category_id),
+        name: String(row.name ?? ''),
+        slug: String(row.name ?? '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
+        description: String(row.description ?? ''),
+        active: Boolean(row.is_active),
+        createdAt: String(row.created_at ?? ''),
+        category: row.category_name ? { id: String(row.category_id), name: String(row.category_name), color: '#6d4b8f' } : undefined,
+      })),
     ),
-  create: (input: SubcategoryInput) => request<Subcategory>('/subcategories', { method: 'POST', body: input }),
+  create: (input: SubcategoryInput) => request<Record<string, unknown>>('/subcategories', { method: 'POST', body: {
+    category_id: input.categoryId, name: input.name, description: input.description,
+  } }).then((row) => ({
+    id: String(row.id), categoryId: String(row.category_id), name: String(row.name ?? ''),
+    slug: input.slug, description: String(row.description ?? ''), active: true, createdAt: String(row.created_at ?? ''),
+  })),
   update: (id: string, input: SubcategoryInput) =>
-    request<Subcategory>(`/subcategories/${id}`, { method: 'PUT', body: input }),
+    request<Record<string, unknown>>(`/subcategories/${id}`, { method: 'PUT', body: {
+      category_id: input.categoryId, name: input.name, description: input.description,
+    } }).then((row) => ({
+      id: String(row.id), categoryId: String(row.category_id), name: String(row.name ?? ''),
+      slug: input.slug, description: String(row.description ?? ''), active: Boolean(row.is_active),
+      createdAt: String(row.created_at ?? ''),
+    })),
   remove: (id: string) => request<{ id: string }>(`/subcategories/${id}`, { method: 'DELETE' }),
   setActive: (id: string, active: boolean) =>
-    request<Subcategory>(`/subcategories/${id}/status`, { method: 'PATCH', body: { active } }),
+    request<Record<string, unknown>>(`/subcategories/${id}/status`, { method: 'PATCH', body: { is_active: active } }).then((row) => ({
+      id: String(row.id), categoryId: String(row.category_id), name: String(row.name ?? ''),
+      slug: '', description: String(row.description ?? ''), active: Boolean(row.is_active),
+      createdAt: String(row.created_at ?? ''),
+    })),
 }
 
 export const artistsApi = {
   list: (filters: ArtistFilters = {}, signal?: AbortSignal) =>
-    request<Paginated<Artist>>(
+    request<Array<Record<string, unknown>>>(
       `/artists${qs({
         search: filters.search,
-        type: filters.type,
-        status: filters.status,
-        page: filters.page ?? 1,
-        limit: filters.limit ?? 10,
+        academic_status: filters.type,
       })}`,
       { signal },
-    ),
-  get: (id: string, signal?: AbortSignal) => request<Artist>(`/artists/${id}`, { signal }),
-  create: (input: ArtistInput) => request<Artist>('/artists', { method: 'POST', body: input }),
-  update: (id: string, input: ArtistInput) => request<Artist>(`/artists/${id}`, { method: 'PUT', body: input }),
+    ).then((rows) => ({
+      data: rows
+        .filter((row) => !filters.status || (filters.status === 'active' ? Boolean(row.is_active) : Boolean(row.is_active) === false))
+        .map((row) => ({
+          id: String(row.id),
+          firstName: String(row.first_name ?? ''),
+          lastName: String(row.last_name ?? ''),
+          email: String(row.email ?? ''),
+          phone: '',
+          document: '',
+          program: '',
+          type: (row.academic_status ?? 'student') as ArtistType,
+          status: 'active' as ActiveStatus,
+          startYear: Number(row.start_year ?? new Date().getFullYear()),
+          endYear: row.end_year ? Number(row.end_year) : undefined,
+          bio: String(row.bio ?? ''),
+          createdAt: String(row.created_at ?? ''),
+        })),
+      meta: {
+        page: filters.page ?? 1,
+        limit: filters.limit ?? 10,
+        total: rows.length,
+        totalPages: Math.max(1, Math.ceil(rows.length / (filters.limit ?? 10))),
+      },
+    })),
+  get: (id: string, signal?: AbortSignal) => request<Record<string, unknown>>(`/artists/${id}`, { signal }).then((row) => ({
+    id: String(row.id), firstName: String(row.first_name ?? ''), lastName: String(row.last_name ?? ''),
+    email: String(row.email ?? ''), phone: '', document: '', program: '',
+    type: (row.academic_status ?? 'student') as ArtistType, status: 'active' as ActiveStatus,
+    startYear: Number(row.start_year ?? new Date().getFullYear()), endYear: row.end_year ? Number(row.end_year) : undefined,
+    bio: '', createdAt: String(row.created_at ?? ''),
+  })),
+  create: (input: ArtistInput) => request<Record<string, unknown>>('/artists', { method: 'POST', body: {
+    first_name: input.firstName, last_name: input.lastName, email: input.email,
+    academic_status: input.type,
+  } }).then((row) => ({
+    id: String(row.id), firstName: String(row.first_name ?? input.firstName), lastName: String(row.last_name ?? input.lastName),
+    email: String(row.email ?? input.email), phone: input.phone, document: input.document, program: input.program,
+    type: input.type, status: input.status, startYear: input.startYear, endYear: input.endYear,
+    bio: input.bio, createdAt: String(row.created_at ?? ''),
+  })),
+  update: (id: string, input: ArtistInput) => request<Record<string, unknown>>(`/artists/${id}`, { method: 'PUT', body: {
+    first_name: input.firstName, last_name: input.lastName, email: input.email,
+    academic_status: input.type,
+  } }).then((row) => ({
+    id: String(row.id), firstName: String(row.first_name ?? input.firstName), lastName: String(row.last_name ?? input.lastName),
+    email: String(row.email ?? input.email), phone: input.phone, document: input.document, program: input.program,
+    type: input.type, status: input.status, startYear: input.startYear, endYear: input.endYear,
+    bio: input.bio, createdAt: String(row.created_at ?? ''),
+  })),
   remove: (id: string) => request<{ id: string }>(`/artists/${id}`, { method: 'DELETE' }),
   graduate: (id: string, endYear?: number) =>
-    request<Artist>(`/artists/${id}/graduate`, { method: 'PATCH', body: { endYear } }),
+    request<Artist>(`/artists/${id}/academic-status`, { method: 'PATCH', body: { academic_status: 'graduate' } }),
   setStatus: (id: string, status: 'active' | 'inactive') =>
     request<Artist>(`/artists/${id}/status`, { method: 'PATCH', body: { status } }),
 }
