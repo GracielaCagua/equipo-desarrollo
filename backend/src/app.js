@@ -19,6 +19,7 @@ import exhibitions from './routes/exhibitions.js';
 import works from './routes/works.js';
 import artworks from './routes/artworks.js';
 import contact from './routes/contact.js';
+import dashboard from './routes/dashboard.js';
 import { UPLOAD_DIR, ensureUploadDir } from './services/storage.js';
 
 export const app = express();
@@ -50,6 +51,7 @@ app.use('/api/exhibitions', protectWrites(PERMISSIONS.EVENTS_WRITE), exhibitions
 app.use('/api/works', protectWrites(PERMISSIONS.WORKS_WRITE), works);
 app.use('/api/artworks', protectWrites(PERMISSIONS.WORKS_WRITE), artworks);
 app.use('/api/contact', contact);
+app.use('/api/dashboard', protectAll(PERMISSIONS.WORKS_WRITE), dashboard);
 app.use('/api', notFound);
 
 const repositoryDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
