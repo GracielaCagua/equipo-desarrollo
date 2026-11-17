@@ -15,27 +15,37 @@ import { UsersPage } from './pages/UsersPage'
 import { UserExplorerPage } from './pages/UserExplorerPage'
 
 export default function App() {
+  const pathname = window.location.pathname
+  const isUserPanel = pathname === '/usuario' || pathname.startsWith('/usuario/')
+  const isLoginPanel = pathname === '/login'
+  const basename = isUserPanel ? '/usuario' : (isLoginPanel ? '/' : '/admin')
+
   return (
-    <BrowserRouter basename="/admin">
+    <BrowserRouter basename={basename}>
       <AuthProvider>
         <ToastProvider>
           <Routes>
-            <Route path="/login" element={<LoginPage />} />
+            {isUserPanel ? (
+              <Route path="/" element={<UserExplorerPage />} />
+            ) : (
+              <>
+                <Route path="login" element={<LoginPage />} />
 
-            <Route element={<ProtectedRoute />}>
-              <Route element={<AdminLayout />}>
-                <Route index element={<DashboardPage />} />
-                <Route path="obras" element={<ArtworksListPage />} />
-                <Route path="obras/nueva" element={<ArtworkFormPage mode="create" />} />
-                <Route path="obras/:id/editar" element={<ArtworkFormPage mode="edit" />} />
-                <Route path="categorias" element={<CategoriesPage />} />
-                <Route path="subcategorias" element={<SubcategoriesPage />} />
-                <Route path="artistas" element={<ArtistsPage />} />
-                <Route path="usuarios" element={<UsersPage />} />
-                <Route path="usuario" element={<UserExplorerPage />} />
-                <Route path="*" element={<NotFoundPage />} />
-              </Route>
-            </Route>
+                <Route element={<ProtectedRoute />}>
+                  <Route element={<AdminLayout />}>
+                    <Route index element={<DashboardPage />} />
+                    <Route path="obras" element={<ArtworksListPage />} />
+                    <Route path="obras/nueva" element={<ArtworkFormPage mode="create" />} />
+                    <Route path="obras/:id/editar" element={<ArtworkFormPage mode="edit" />} />
+                    <Route path="categorias" element={<CategoriesPage />} />
+                    <Route path="subcategorias" element={<SubcategoriesPage />} />
+                    <Route path="artistas" element={<ArtistsPage />} />
+                    <Route path="usuarios" element={<UsersPage />} />
+                    <Route path="*" element={<NotFoundPage />} />
+                  </Route>
+                </Route>
+              </>
+            )}
           </Routes>
         </ToastProvider>
       </AuthProvider>

@@ -60,9 +60,11 @@ const adminDist = path.join(repositoryDir, 'admin', 'dist');
 
 if (fs.existsSync(adminDist)) {
   app.use('/admin', express.static(adminDist));
-  app.get('/login', (_req, res) => res.redirect('/admin/login'));
-  app.get('/admin', (_req, res) => res.redirect('/admin/login'));
+  app.get('/login', (_req, res) => res.sendFile(path.join(adminDist, 'index.html')));
+  app.get('/admin', (_req, res) => res.sendFile(path.join(adminDist, 'index.html')));
   app.get('/admin/*', (_req, res) => res.sendFile(path.join(adminDist, 'index.html')));
+  app.get('/usuario', (_req, res) => res.sendFile(path.join(adminDist, 'index.html')));
+  app.get('/usuario/*', (_req, res) => res.sendFile(path.join(adminDist, 'index.html')));
 }
 
 if (fs.existsSync(publicDist)) {

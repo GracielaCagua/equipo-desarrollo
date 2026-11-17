@@ -29,7 +29,7 @@ export function LoginPage() {
   const [loading, setLoading] = useState(false)
 
   if (user) {
-    return <Navigate to={user.role === 'editor' ? '/usuario' : '/'} replace />
+    return <Navigate to={user.role === 'editor' ? '/usuario' : '/admin'} replace />
   }
 
   const handleSubmit = async (event: FormEvent) => {
@@ -67,7 +67,7 @@ export function LoginPage() {
       const nextUser = loadSession()?.user
       navigate(nextUser?.role === 'editor'
         ? '/usuario'
-        : (state?.from?.pathname ?? '/'), { replace: true })
+        : (state?.from?.pathname?.startsWith('/admin') ? state.from.pathname : '/admin'), { replace: true })
     } catch (error) {
       setFormError(error instanceof ApiError ? error.message : 'No fue posible iniciar sesión. Inténtalo de nuevo.')
     } finally {
