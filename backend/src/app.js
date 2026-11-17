@@ -11,6 +11,10 @@ import subcategories from './routes/subcategories.js';
 import artists from './routes/artists.js';
 import { listAudit } from './services/audit.js';
 import { asyncHandler } from './utils/httpError.js';
+import awards from './routes/awards.js';
+import exhibitions from './routes/exhibitions.js';
+import works from './routes/works.js';
+import contact from './routes/contact.js';
 
 export const app = express();
 app.disable('x-powered-by');
@@ -34,12 +38,9 @@ app.get('/api/audit-log', protectAll(PERMISSIONS.AUDIT_READ), asyncHandler(async
 app.use('/api/categories', protectWrites(PERMISSIONS.CATALOG_WRITE), categories);
 app.use('/api/subcategories', protectWrites(PERMISSIONS.CATALOG_WRITE), subcategories);
 app.use('/api/artists', protectWrites(PERMISSIONS.CATALOG_WRITE), artists);
-
+app.use('/api/awards', protectWrites(PERMISSIONS.EVENTS_WRITE), awards);
+app.use('/api/exhibitions', protectWrites(PERMISSIONS.EVENTS_WRITE), exhibitions);
+app.use('/api/works', protectWrites(PERMISSIONS.WORKS_WRITE), works);
+app.use('/api/contact', contact);
 app.use('/api', notFound);
-app.use(errorHandler);
-app.use('/api/categories', categories);
-app.use('/api/subcategories', subcategories);
-app.use('/api/artists', artists);
-app.use('/api/works', artworksRouter);
-app.use('/uploads', express.static(UPLOAD_DIR));
 app.use(errorHandler);

@@ -1,6 +1,8 @@
 import { HttpError } from '../utils/httpError.js';
 
 const academicStatuses = new Set(['student', 'graduate']);
+const commercialStatuses = new Set(['sold', 'not_sold']);
+const messageStatuses = new Set(['unread', 'read', 'responded', 'archived']);
 
 export function requiredText(value, field) {
   if (typeof value !== 'string' || value.trim() === '') {
@@ -20,6 +22,23 @@ export function validateAcademicStatus(value) {
   return value;
 }
 
+export function validateCommercialStatus(value) {
+  if (typeof value === 'boolean') {
+    return value ? 'sold' : 'not_sold';
+  }
+  if (!commercialStatuses.has(value)) {
+    throw new HttpError(400, 'commercial_status debe ser sold o not_sold');
+  }
+  return value;
+}
+
+export function validateMessageStatus(value) {
+  if (!messageStatuses.has(value)) {
+    throw new HttpError(400, 'status debe ser unread, read, responded o archived');
+  }
+  return value;
+}
+
 export function validateEmail(value) {
   const email = requiredText(value, 'email').toLowerCase();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -34,3 +53,28 @@ export function parseId(value, field = 'id') {
   return id;
 }
 
+export function validateDate(value, field = 'fecha') {
+  const str = requiredText(value, field);
+  // Match YYYY-MM-DD or standard ISO date prefix
+  if (!/^\d{4}-\d{2}-\d{2}/.test(str)) {
+    throw new HttpError(400, `${field} debe tener un formato de fecha válido (YYYY-MM-DD)`);
+  }
+  const date = new Date(str);
+  if (Number.isNaN(date.getTime())) {
+    throw new HttpError(400, `${field} no corresponde a una fecha válida`);
+  }
+  return str.slice(0, 10);
+}
+
+export function optionalDate(value, field = 'fecha') {
+  if (value == null || String(value).trim() === '') return null;
+  return validateDate(value, field);
+}
+
+export function parseIdArray(values, field = 'ids') {
+  if (values == null) return [];
+  if (!Array.isArray(values)) {
+    throw new HttpError(400, `${field} debe ser una lista de identificadores`);
+  }
+  return [...new Set(values.map((v) => parseId(v, `${field} elemento`)))];
+}
