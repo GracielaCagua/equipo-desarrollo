@@ -1,5 +1,9 @@
 # Repositorio de Arte Universitario — Panel administrativo
 
+Este panel vive separado del sitio público en la carpeta `admin/`, siguiendo una
+arquitectura de aplicaciones independientes. El sitio público está en `frontend/`
+y la API en `backend/`.
+
 Módulo correspondiente al **Desarrollador 4**: panel de administración para gestionar obras, archivos,
 categorías, subcategorías, estudiantes y graduados del repositorio de arte.
 
