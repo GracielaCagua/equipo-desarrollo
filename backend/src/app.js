@@ -16,12 +16,15 @@ import exhibitions from './routes/exhibitions.js';
 import works from './routes/works.js';
 import artworks from './routes/artworks.js';
 import contact from './routes/contact.js';
+import { UPLOAD_DIR, ensureUploadDir } from './services/storage.js';
 
 export const app = express();
 app.disable('x-powered-by');
 app.set('trust proxy', 1);
 app.use(cors({ origin: config.frontendUrl.split(',').map((url) => url.trim()) }));
 app.use(express.json({ limit: '1mb' }));
+ensureUploadDir();
+app.use('/uploads', express.static(UPLOAD_DIR, { fallthrough: false }));
 
 app.get('/api/health', (_req, res) => res.json({ status: 'ok' }));
 

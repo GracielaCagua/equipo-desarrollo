@@ -3446,6 +3446,186 @@ button {
     grid-template-columns: 1fr;
   }
 
+  /* Login inspirado en Galeris: espacio nocturno, panel translúcido y acentos vivos. */
+  .login-page {
+    grid-template-columns: minmax(520px, 1.08fr) minmax(440px, .92fr);
+    background: #10192d;
+  }
+
+  .login-brand {
+    padding: 48px clamp(36px, 6vw, 74px);
+    background:
+      radial-gradient(circle at 14% 12%, rgba(120, 35, 241, .42), transparent 34%),
+      radial-gradient(circle at 84% 90%, rgba(255, 88, 82, .18), transparent 34%),
+      linear-gradient(145deg, #281858 0%, #171f35 64%, #29302f 100%);
+    border-right: 1px solid rgba(146, 170, 214, .18);
+  }
+
+  .login-brand-top {
+    gap: 14px;
+    color: #f7f5ff;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+  }
+
+  .login-brand-top strong {
+    display: block;
+    font-size: 15px;
+    letter-spacing: .18em;
+  }
+
+  .login-brand-top small {
+    display: block;
+    color: #9da5c2;
+    font-size: 9px;
+    letter-spacing: 0;
+    margin-top: 4px;
+    text-transform: none;
+  }
+
+  .brand-mark-light {
+    background: linear-gradient(145deg, #7d31ff, #f226a5);
+    border-radius: 12px;
+    color: #fff;
+    box-shadow: 0 0 28px rgba(188, 39, 255, .36);
+  }
+
+  .login-brand-copy {
+    max-width: 560px;
+  }
+
+  .login-eyebrow,
+  .login-card .eyebrow {
+    color: #a9a9d8;
+  }
+
+  .login-brand h1 {
+    max-width: 600px;
+    color: #fff;
+    font-family: var(--sans);
+    font-size: clamp(42px, 4.5vw, 64px);
+    font-weight: 700;
+    letter-spacing: -.045em;
+    line-height: 1.02;
+  }
+
+  .login-brand-copy > p {
+    color: #aeb8d4;
+    font-size: 13px;
+    max-width: 500px;
+  }
+
+  .login-collage {
+    display: none;
+  }
+
+  .login-features {
+    margin-top: 76px;
+    gap: 14px;
+  }
+
+  .login-features li {
+    color: #d3d8e8;
+    font-size: 12px;
+  }
+
+  .login-features svg {
+    background: rgba(31, 220, 198, .1);
+    border: 1px solid rgba(31, 220, 198, .18);
+    border-radius: 7px;
+    color: #f4a91d;
+    padding: 7px;
+    box-sizing: content-box;
+  }
+
+  .login-panel {
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(ellipse at 68% 50%, rgba(71, 13, 144, .48), transparent 44%),
+      #10192d;
+  }
+
+  .login-panel::before {
+    content: '';
+    position: absolute;
+    width: 520px;
+    height: 520px;
+    border: 18px solid rgba(75, 12, 118, .35);
+    border-radius: 50%;
+    right: -80px;
+    top: 50%;
+    transform: translateY(-50%) rotate(-22deg);
+    box-shadow: 0 0 0 24px rgba(0, 164, 178, .12), 0 0 0 54px rgba(41, 12, 90, .3);
+  }
+
+  .login-card {
+    position: relative;
+    z-index: 1;
+    max-width: 380px;
+    background: rgba(27, 38, 63, .82);
+    border: 1px solid rgba(151, 166, 201, .2);
+    border-radius: 15px;
+    box-shadow: 0 24px 80px rgba(0, 0, 0, .35);
+    color: #f4f4ff;
+    backdrop-filter: blur(14px);
+  }
+
+  .login-card-head h2 {
+    color: #fff;
+    font-family: var(--sans);
+    font-size: 23px;
+    font-weight: 700;
+  }
+
+  .login-card-head p,
+  .login-card .field-label,
+  .login-help,
+  .demo-box-head span {
+    color: #9ca8c5;
+  }
+
+  .login-card input {
+    background: #111b30;
+    border-color: #3b4864;
+    color: #fff;
+  }
+
+  .login-card input:focus {
+    border-color: #ff7b12;
+    box-shadow: 0 0 0 2px rgba(255, 123, 18, .18);
+  }
+
+  .login-submit {
+    background: linear-gradient(90deg, #9f00e8, #e6239c 58%, #ff8a17);
+    border-radius: 7px;
+    box-shadow: 0 8px 22px rgba(190, 25, 218, .24);
+  }
+
+  .login-submit:hover {
+    background: linear-gradient(90deg, #b71aff, #f13ead 58%, #ff9f3d);
+  }
+
+  .demo-box {
+    border-top-color: rgba(151, 166, 201, .2);
+  }
+
+  .demo-actions button {
+    background: rgba(12, 21, 39, .55);
+    border-color: rgba(151, 166, 201, .2);
+  }
+
+  .demo-actions strong,
+  .login-help a {
+    color: #f4a91d;
+  }
+
+  @media (max-width: 860px) {
+    .login-page { grid-template-columns: 1fr; }
+    .login-brand { min-height: 52vh; }
+    .login-panel::before { opacity: .35; }
+  }
+
   .login-brand {
     padding: 30px 30px 26px;
   }

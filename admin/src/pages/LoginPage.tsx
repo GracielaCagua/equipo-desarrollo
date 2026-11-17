@@ -61,52 +61,51 @@ export function LoginPage() {
     <div className="login-page">
       <section className="login-brand">
         <div className="login-brand-top">
-          <div className="brand-mark brand-mark-light">RA</div>
-          <span>Repositorio de Arte Universitario</span>
+          <div className="brand-mark brand-mark-light">G</div>
+          <div><strong>GALERIS</strong><small>Galerías 3D colaborativas</small></div>
         </div>
 
         <div className="login-brand-copy">
-          <span className="login-eyebrow">Panel de administración</span>
-          <h1>El archivo vivo del arte universitario.</h1>
+          <span className="login-eyebrow">Plataforma de exposiciones</span>
+          <h1>Diseña, comparte y administra tus galerías en 3D.</h1>
           <p>
-            Gestiona obras, clasificaciones y trayectorias de estudiantes y graduados en un solo lugar,
-            con la trazabilidad que exige el repositorio.
+            Un único espacio para organizar la biblioteca de modelos y coordinar todo el equipo.
           </p>
 
           <div className="login-collage" aria-hidden="true">
             <div className="collage-card collage-card-1">
-              <span>Pintura</span>
+              <span>Editor 3D</span>
             </div>
             <div className="collage-card collage-card-2">
-              <span>Fotografía</span>
+              <span>Modo usuario</span>
             </div>
             <div className="collage-card collage-card-3">
-              <span>Escultura</span>
+              <span>Modo administrador</span>
             </div>
           </div>
 
           <ul className="login-features">
             <li>
-              <IconSparkle size={16} /> Curaduría visual de obras y archivos
+              <IconSparkle size={16} /> Paredes, bloques y modelos GLB en tiempo real
             </li>
             <li>
-              <IconSparkle size={16} /> Categorías y subcategorías siempre organizadas
+              <IconSparkle size={16} /> Cada persona trabaja con sus propios proyectos
             </li>
             <li>
-              <IconSparkle size={16} /> Historial intacto al graduarse un estudiante
+              <IconSparkle size={16} /> Consulta usuarios, roles y actividad
             </li>
           </ul>
         </div>
 
-        <p className="login-brand-foot">© {new Date().getFullYear()} Repositorio de Arte Universitario · Módulo administrativo</p>
+        <p className="login-brand-foot">© {new Date().getFullYear()} Galeris · Galerías 3D colaborativas</p>
       </section>
 
       <section className="login-panel">
         <div className="login-card">
           <div className="login-card-head">
-            <span className="eyebrow">Acceso restringido</span>
-            <h2>Bienvenido de nuevo</h2>
-            <p>Ingresa con tu cuenta administrativa para gestionar el repositorio.</p>
+            <span className="eyebrow">Bienvenido de nuevo</span>
+            <h2>Iniciar sesión</h2>
+            <p>Accede con tu cuenta para continuar.</p>
           </div>
 
           {formError && (
@@ -117,14 +116,14 @@ export function LoginPage() {
           )}
 
           <form onSubmit={handleSubmit} noValidate>
-            <Field label="Correo institucional" htmlFor="email" required error={errors.email}>
+            <Field label="Usuario o correo" htmlFor="email" required error={errors.email}>
               <div className="input-with-icon">
                 <IconMail size={18} />
                 <Input
                   id="email"
                   type="email"
                   autoComplete="email"
-                  placeholder="nombre@repositorio.edu.co"
+                  placeholder="admin"
                   value={email}
                   onChange={(event) => {
                     setEmail(event.target.value)

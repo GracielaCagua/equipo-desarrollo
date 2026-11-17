@@ -90,6 +90,13 @@ con un administrador mediante `/api/auth/login`; el frontend incluye el formular
 conserva el token de sesión en el navegador. El formulario público de contacto permanece disponible
 sin sesión, mientras que la bandeja de mensajes exige el permiso `messages:manage`.
 
+### Almacenamiento local temporal
+
+Por ahora, los archivos de las obras se guardan localmente en la carpeta `uploads/` del backend.
+La tabla `work_files` almacena únicamente sus metadatos y la ruta `/uploads/<archivo>`. Puedes
+personalizar la ubicación con `UPLOAD_DIR` en `backend/.env`. Supabase se utiliza solamente como
+base de datos PostgreSQL; no se necesita configurar Supabase Storage todavía.
+
 ## Módulos de la Interfaz Web
 
 - **Categorías y Subcategorías:** Clasificación disciplinar del repositorio.

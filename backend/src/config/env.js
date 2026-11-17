@@ -1,12 +1,19 @@
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const backendDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+const envPath = path.join(backendDir, '.env');
+
 if (typeof process.loadEnvFile === 'function') {
   try {
-    process.loadEnvFile();
+    process.loadEnvFile(envPath);
   } catch {
     // Archivo .env no presente o no requerido
   }
 } else {
   try {
-    await import('dotenv/config');
+    const { config: loadEnv } = await import('dotenv');
+    loadEnv({ path: envPath });
   } catch {
     // dotenv no instalado
   }
