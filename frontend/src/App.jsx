@@ -1,9 +1,5 @@
-import { useEffect } from 'react';
+import { PublicGallery } from './pages/PublicGallery.jsx';
 
 export default function App() {
-  useEffect(() => {
-    window.location.replace('/admin/login');
-  }, []);
-
-  return null;
+  return <PublicGallery />;
 }

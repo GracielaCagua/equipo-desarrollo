@@ -22,7 +22,6 @@ const NAV_ITEMS = [
   { to: '/categorias', label: 'Categorías', icon: IconCategory },
   { to: '/subcategorias', label: 'Subcategorías', icon: IconSubcategory },
   { to: '/artistas', label: 'Artistas', icon: IconUsers },
-  { to: '/usuarios', label: 'Usuarios', icon: IconUsers },
 ]
 
 const PUBLIC_URL = import.meta.env.VITE_PUBLIC_URL ?? '#'
