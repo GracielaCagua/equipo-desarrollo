@@ -8,5 +8,8 @@ router.get('/:id', asyncHandler(async (req, res) => res.json(await service.getSu
 router.post('/', asyncHandler(async (req, res) => res.status(201).json(await service.createSubcategory(req.body))));
 router.put('/:id', asyncHandler(async (req, res) => res.json(await service.updateSubcategory(req.params.id, req.body))));
 router.patch('/:id/status', asyncHandler(async (req, res) => res.json(await service.setSubcategoryStatus(req.params.id, req.body.is_active))));
+router.delete('/:id', asyncHandler(async (req, res) => {
+  await service.deleteSubcategory(req.params.id);
+  res.status(204).end();
+}));
 export default router;
-

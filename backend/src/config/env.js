@@ -1,4 +1,23 @@
-import 'dotenv/config';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const backendDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+const envPath = path.join(backendDir, '.env');
+
+if (typeof process.loadEnvFile === 'function') {
+  try {
+    process.loadEnvFile(envPath);
+  } catch {
+    // Archivo .env no presente o no requerido
+  }
+} else {
+  try {
+    const { config: loadEnv } = await import('dotenv');
+    loadEnv({ path: envPath });
+  } catch {
+    // dotenv no instalado
+  }
+}
 
 const isProduction = process.env.NODE_ENV === 'production';
 const isTest = process.env.NODE_ENV === 'test';
@@ -22,5 +41,6 @@ export const config = {
   jwtSecret,
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '8h',
   loginMaxAttempts: Number(process.env.LOGIN_MAX_ATTEMPTS || 5),
-  loginWindowMinutes: Number(process.env.LOGIN_WINDOW_MINUTES || 15)
+  loginWindowMinutes: Number(process.env.LOGIN_WINDOW_MINUTES || 15),
+  institutionalEmail: process.env.INSTITUTIONAL_EMAIL || 'contacto.repositorio@universidad.edu'
 };

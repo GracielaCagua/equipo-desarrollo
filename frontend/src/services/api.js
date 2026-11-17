@@ -1,16 +1,30 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 async function request(path, options = {}) {
-  const response = await fetch(`${API_URL}${path}`, {
-    headers: { 'Content-Type': 'application/json', ...options.headers },
-    ...options
-  });
+  const headers = { ...options.headers };
+  const token = localStorage.getItem('access_token');
+  if (token) headers.Authorization = `Bearer ${token}`;
+  const isFormData = options.body instanceof FormData;
+  if (!isFormData) headers['Content-Type'] = 'application/json';
+  const response = await fetch(`${API_URL}${path}`, { ...options, headers });
   const data = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(data.error || 'No se pudo completar la operación');
   return data;
 }
 
+function buildQuery(params = {}) {
+  const searchParams = new URLSearchParams(
+    Object.entries(params).filter(([, value]) => value !== undefined && value !== null && value !== '')
+  );
+  const qs = searchParams.toString();
+  return qs ? `?${qs}` : '';
+}
+
 export const api = {
+  auth: {
+    login: (data) => request('/auth/login', { method: 'POST', body: JSON.stringify(data) }),
+    me: () => request('/auth/me')
+  },
   categories: {
     list: (search = '') => request(`/categories${search ? `?search=${encodeURIComponent(search)}` : ''}`),
     create: (data) => request('/categories', { method: 'POST', body: JSON.stringify(data) }),
@@ -24,14 +38,59 @@ export const api = {
     status: (id, is_active) => request(`/subcategories/${id}/status`, { method: 'PATCH', body: JSON.stringify({ is_active }) })
   },
   artists: {
-    list: (filters = {}) => {
-      const params = new URLSearchParams(Object.entries(filters).filter(([, value]) => value));
-      return request(`/artists${params.toString() ? `?${params}` : ''}`);
-    },
+    list: (filters = {}) => request(`/artists${buildQuery(filters)}`),
     create: (data) => request('/artists', { method: 'POST', body: JSON.stringify(data) }),
     update: (id, data) => request(`/artists/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     graduate: (id) => request(`/artists/${id}/academic-status`, { method: 'PATCH', body: JSON.stringify({ academic_status: 'graduate' }) }),
     works: (id) => request(`/artists/${id}/works`)
+  },
+  awards: {
+    list: (filters = {}) => request(`/awards${buildQuery(filters)}`),
+    get: (id) => request(`/awards/${id}`),
+    create: (data) => request('/awards', { method: 'POST', body: JSON.stringify(data) }),
+    update: (id, data) => request(`/awards/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    delete: (id) => request(`/awards/${id}`, { method: 'DELETE' })
+  },
+  exhibitions: {
+    list: (filters = {}) => request(`/exhibitions${buildQuery(filters)}`),
+    get: (id) => request(`/exhibitions/${id}`),
+    create: (data) => request('/exhibitions', { method: 'POST', body: JSON.stringify(data) }),
+    update: (id, data) => request(`/exhibitions/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    delete: (id) => request(`/exhibitions/${id}`, { method: 'DELETE' }),
+    exposedWorks: (filters = {}) => request(`/exhibitions/exposed-works${buildQuery(filters)}`)
+  },
+  works: {
+    list: (filters = {}) => request(`/works${buildQuery(filters)}`),
+    get: (id) => request(`/works/${id}`),
+    updateCommercialStatus: (id, statusData) => request(`/works/${id}/commercial-status`, {
+      method: 'PATCH',
+      body: JSON.stringify(statusData)
+    })
+  },
+  artworks: {
+    list: (filters = {}) => request(`/artworks${buildQuery(filters)}`),
+    get: (id) => request(`/artworks/${id}`),
+    create: (data) => request('/artworks', { method: 'POST', body: JSON.stringify(data) }),
+    update: (id, data) => request(`/artworks/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    status: (id, publication_status) => request(`/artworks/${id}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ publication_status })
+    }),
+    delete: (id) => request(`/artworks/${id}`, { method: 'DELETE' }),
+    upload: (id, files) => {
+      const body = new FormData();
+      files.forEach((file) => body.append('files', file));
+      return request(`/artworks/${id}/files`, { method: 'POST', body });
+    }
+  },
+  contact: {
+    submit: (data) => request('/contact', { method: 'POST', body: JSON.stringify(data) }),
+    messages: (filters = {}) => request(`/contact/messages${buildQuery(filters)}`),
+    getMessage: (id) => request(`/contact/messages/${id}`),
+    updateStatus: (id, status) => request(`/contact/messages/${id}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status })
+    }),
+    deleteMessage: (id) => request(`/contact/messages/${id}`, { method: 'DELETE' })
   }
 };
-
