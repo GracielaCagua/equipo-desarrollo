@@ -23,6 +23,7 @@ const NAV_ITEMS = [
   { to: '/subcategorias', label: 'Subcategorías', icon: IconSubcategory, permission: 'subcategories:write' as const },
   { to: '/artistas', label: 'Artistas', icon: IconUsers, permission: 'artists:write' as const },
   { to: '/usuarios', label: 'Usuarios', icon: IconUsers, permission: 'users:manage' as const },
+  { to: '/usuarios', label: 'Usuarios', icon: IconUsers, permission: 'users:manage' as const },
 ]
 
 const PUBLIC_URL = import.meta.env.VITE_PUBLIC_URL ?? '#'

@@ -21,7 +21,7 @@ export function PublicGallery() {
       api.artists.list(),
       api.awards.list(),
       api.exhibitions.list(),
-      api.works.list(),
+      api.artworks.list({ publication_status: 'published' }),
     ])
       .then(([categoryItems, subcategoryItems, artistItems, awardItems, exhibitionItems, workItems]) => {
         setCategories(categoryItems.filter((item) => item.is_active));
@@ -29,7 +29,7 @@ export function PublicGallery() {
         setArtists(artistItems.filter((item) => item.academic_status));
         setAwards(awardItems);
         setExhibitions(exhibitionItems);
-        setWorks(workItems);
+        setWorks(Array.isArray(workItems) ? workItems : (workItems.data ?? []));
       })
       .finally(() => setLoading(false));
   }, []);
