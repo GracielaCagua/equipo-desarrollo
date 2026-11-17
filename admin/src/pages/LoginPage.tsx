@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { ApiError } from '../api/errors'
 import { useAuth } from '../auth/AuthContext'
 import { Button } from '../components/ui/Button'
@@ -14,7 +14,6 @@ interface LocationState {
 
 export function LoginPage() {
   const { user, login, register } = useAuth()
-  const navigate = useNavigate()
   const location = useLocation()
   const state = location.state as LocationState | null
 
@@ -29,7 +28,8 @@ export function LoginPage() {
   const [loading, setLoading] = useState(false)
 
   if (user) {
-    return <Navigate to={user.role === 'editor' ? '/usuario' : '/admin'} replace />
+    window.location.replace(user.role === 'editor' ? '/usuario' : '/admin')
+    return null
   }
 
   const handleSubmit = async (event: FormEvent) => {
@@ -60,14 +60,14 @@ export function LoginPage() {
     try {
       if (mode === 'register') {
         await register(fullName.trim(), email.trim(), password)
-        navigate('/usuario', { replace: true })
+        window.location.replace('/usuario')
         return
       }
       await login(email.trim(), password)
       const nextUser = loadSession()?.user
-      navigate(nextUser?.role === 'editor'
+      window.location.replace(nextUser?.role === 'editor'
         ? '/usuario'
-        : (state?.from?.pathname?.startsWith('/admin') ? state.from.pathname : '/admin'), { replace: true })
+        : (state?.from?.pathname?.startsWith('/admin') ? state.from.pathname : '/admin'))
     } catch (error) {
       setFormError(error instanceof ApiError ? error.message : 'No fue posible iniciar sesión. Inténtalo de nuevo.')
     } finally {

@@ -9,7 +9,8 @@ export function ProtectedRoute() {
     return <Navigate to="/login" replace state={{ from: location }} />
   }
   if (user.role === 'editor' && location.pathname !== '/usuario') {
-    return <Navigate to="/usuario" replace />
+    window.location.replace('/usuario')
+    return null
   }
 
   return <Outlet />

@@ -23,7 +23,6 @@ const NAV_ITEMS = [
   { to: '/subcategorias', label: 'Subcategorías', icon: IconSubcategory, permission: 'subcategories:write' as const },
   { to: '/artistas', label: 'Artistas', icon: IconUsers, permission: 'artists:write' as const },
   { to: '/usuarios', label: 'Usuarios', icon: IconUsers, permission: 'users:manage' as const },
-  { to: '/usuario', label: 'Explorar repositorio', icon: IconArtwork, permission: null, usersOnly: true },
 ]
 
 const PUBLIC_URL = import.meta.env.VITE_PUBLIC_URL ?? '#'
@@ -82,7 +81,6 @@ export function AdminLayout() {
         <nav className="sidebar-nav" aria-label="Navegación principal">
           <span className="nav-label">Gestión</span>
           {NAV_ITEMS.filter((item) => {
-            if ('usersOnly' in item) return user.role === 'editor'
             if (item.permission) return can(item.permission)
             return user.role !== 'editor'
           }).map((item) => {
