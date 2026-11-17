@@ -68,6 +68,12 @@ test('escrituras del catálogo exigen sesión', async () => {
   }
 });
 
+test('obras multimedia y bandeja de contacto exigen sesión para escribir o administrar', async () => {
+  assert.equal((await call('/artworks', { method: 'POST', body: {} })).status, 401);
+  assert.equal((await call('/contact/messages')).status, 401);
+  assert.equal((await call('/contact/messages/1', { method: 'DELETE' })).status, 401);
+});
+
 test('rechaza tokens manipulados o con otro formato', async () => {
   const forged = `${tokenFor('superadmin').slice(0, -3)}abc`;
   assert.equal((await call('/categories', { method: 'POST', token: forged, body: {} })).status, 401);

@@ -14,6 +14,7 @@ import { asyncHandler } from './utils/httpError.js';
 import awards from './routes/awards.js';
 import exhibitions from './routes/exhibitions.js';
 import works from './routes/works.js';
+import artworks from './routes/artworks.js';
 import contact from './routes/contact.js';
 
 export const app = express();
@@ -41,6 +42,7 @@ app.use('/api/artists', protectWrites(PERMISSIONS.CATALOG_WRITE), artists);
 app.use('/api/awards', protectWrites(PERMISSIONS.EVENTS_WRITE), awards);
 app.use('/api/exhibitions', protectWrites(PERMISSIONS.EVENTS_WRITE), exhibitions);
 app.use('/api/works', protectWrites(PERMISSIONS.WORKS_WRITE), works);
+app.use('/api/artworks', protectWrites(PERMISSIONS.WORKS_WRITE), artworks);
 app.use('/api/contact', contact);
 app.use('/api', notFound);
 app.use(errorHandler);

@@ -12,6 +12,10 @@ button:hover { background: #244b40; }
 h1, h2, h3, h4 { margin: 0; font-family: 'Playfair Display', serif; }
 h1 { font-size: 1.6rem; margin: 3px 0 25px; }
 nav { display: flex; gap: 5px; flex-wrap: wrap; }
+.login-form { align-items: center; display: flex; gap: 6px; flex-wrap: wrap; margin-left: auto; }
+.login-form input { border: 1px solid #dcd4cc; border-radius: 7px; padding: 9px 10px; width: 150px; }
+.login-form .secondary { color: #4d4843; }
+.login-error { color: #9c3d31; font-size: .8rem; }
 nav button { background: transparent; color: #6d6964; border-radius: 8px 8px 0 0; padding: 10px 14px; font-size: 0.9rem; }
 nav button:hover, nav .nav-active { background: #f6f3ef; color: #2f5d50; font-weight: 700; }
 .content { width: min(1200px, calc(100% - 40px)); margin: 0 auto; padding: 48px 0; flex: 1; }

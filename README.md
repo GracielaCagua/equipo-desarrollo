@@ -1,6 +1,6 @@
 # Repositorio Universitario de Obras (Versión 2.0.0)
 
-Plataforma universitaria para la administración de clasificación artística, perfiles de artistas y **Módulos Especiales** (premios, exposiciones y galerías, catálogo de obras expuestas, ventas / estado comercial y canal de contacto público con bandeja administrativa). La API persiste las operaciones en PostgreSQL; no se usan datos ficticios.
+Plataforma universitaria para usuarios públicos y administradores: clasificación artística, perfiles de artistas, carga multimedia de obras y **Módulos Especiales** (premios, exposiciones y galerías, catálogo de obras expuestas, ventas / estado comercial y canal de contacto público con bandeja administrativa). La API persiste las operaciones en PostgreSQL; no se usan datos ficticios.
 
 ## Tecnologías
 
@@ -74,6 +74,21 @@ Requisitos: Node.js 18+, npm y PostgreSQL 14+.
 | GET | `/api/contact/messages` | **Administración:** Consultar mensajes y filtrar por estado |
 | GET/DELETE | `/api/contact/messages/:id` | **Administración:** Detalle y eliminación de mensaje |
 | PATCH | `/api/contact/messages/:id/status` | **Administración:** Cambiar estado (`unread`, `read`, `responded`, `archived`) |
+
+### Obras y archivos multimedia
+| Método | Ruta | Uso |
+|---|---|---|
+| GET | `/api/artworks` | Catálogo de obras con filtros por artista, categoría, subcategoría y publicación |
+| POST | `/api/artworks` | **Administración:** Crear una obra clasificada |
+| PUT | `/api/artworks/:id` | **Administración:** Editar datos de una obra |
+| PATCH | `/api/artworks/:id/status` | **Administración:** Publicar, archivar o devolver a borrador |
+| POST | `/api/artworks/:id/files` | **Administración:** Cargar imágenes, videos, modelos 3D o documentos |
+| DELETE | `/api/artworks/:id` | **Administración:** Eliminar la obra y sus archivos |
+
+Las lecturas del catálogo son públicas. Las operaciones de administración requieren iniciar sesión
+con un administrador mediante `/api/auth/login`; el frontend incluye el formulario de acceso y
+conserva el token de sesión en el navegador. El formulario público de contacto permanece disponible
+sin sesión, mientras que la bandeja de mensajes exige el permiso `messages:manage`.
 
 ## Módulos de la Interfaz Web
 

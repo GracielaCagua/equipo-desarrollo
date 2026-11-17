@@ -1,10 +1,12 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 async function request(path, options = {}) {
-  const response = await fetch(`${API_URL}${path}`, {
-    headers: { 'Content-Type': 'application/json', ...options.headers },
-    ...options
-  });
+  const headers = { ...options.headers };
+  const token = localStorage.getItem('access_token');
+  if (token) headers.Authorization = `Bearer ${token}`;
+  const isFormData = options.body instanceof FormData;
+  if (!isFormData) headers['Content-Type'] = 'application/json';
+  const response = await fetch(`${API_URL}${path}`, { ...options, headers });
   const data = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(data.error || 'No se pudo completar la operación');
   return data;
@@ -19,6 +21,10 @@ function buildQuery(params = {}) {
 }
 
 export const api = {
+  auth: {
+    login: (data) => request('/auth/login', { method: 'POST', body: JSON.stringify(data) }),
+    me: () => request('/auth/me')
+  },
   categories: {
     list: (search = '') => request(`/categories${search ? `?search=${encodeURIComponent(search)}` : ''}`),
     create: (data) => request('/categories', { method: 'POST', body: JSON.stringify(data) }),
@@ -60,6 +66,22 @@ export const api = {
       method: 'PATCH',
       body: JSON.stringify(statusData)
     })
+  },
+  artworks: {
+    list: (filters = {}) => request(`/artworks${buildQuery(filters)}`),
+    get: (id) => request(`/artworks/${id}`),
+    create: (data) => request('/artworks', { method: 'POST', body: JSON.stringify(data) }),
+    update: (id, data) => request(`/artworks/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    status: (id, publication_status) => request(`/artworks/${id}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ publication_status })
+    }),
+    delete: (id) => request(`/artworks/${id}`, { method: 'DELETE' }),
+    upload: (id, files) => {
+      const body = new FormData();
+      files.forEach((file) => body.append('files', file));
+      return request(`/artworks/${id}/files`, { method: 'POST', body });
+    }
   },
   contact: {
     submit: (data) => request('/contact', { method: 'POST', body: JSON.stringify(data) }),

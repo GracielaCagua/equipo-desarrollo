@@ -9,15 +9,17 @@ import { ExposedWorksPage } from './pages/ExposedWorksPage.jsx';
 import { CommercialStatusPage } from './pages/CommercialStatusPage.jsx';
 import { ContactPage } from './pages/ContactPage.jsx';
 import { MessagesInboxPage } from './pages/MessagesInboxPage.jsx';
+import { ArtworksPage } from './pages/ArtworksPage.jsx';
 
 export default function App() {
-  const [page, setPage] = useState('awards');
+  const [page, setPage] = useState('artworks');
 
   return (
     <Layout page={page} setPage={setPage}>
       {page === 'categories' && <CategoriesPage />}
       {page === 'subcategories' && <SubcategoriesPage />}
       {page === 'artists' && <ArtistsPage />}
+      {page === 'artworks' && <ArtworksPage />}
       {page === 'awards' && <AwardsPage />}
       {page === 'exhibitions' && <ExhibitionsPage />}
       {page === 'exposed-works' && <ExposedWorksPage />}
