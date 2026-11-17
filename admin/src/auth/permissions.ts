@@ -8,11 +8,12 @@ export type Permission =
   | 'artists:write'
   | 'artists:graduate'
   | 'artists:delete'
+  | 'users:manage'
 
 const PERMISSIONS: Record<UserRole, Permission[]> = {
   superadmin: [
     'artworks:write', 'artworks:delete', 'categories:write', 'subcategories:write',
-    'artists:write', 'artists:graduate', 'artists:delete',
+    'artists:write', 'artists:graduate', 'artists:delete', 'users:manage',
   ],
   admin: [
     'artworks:write',
@@ -22,6 +23,7 @@ const PERMISSIONS: Record<UserRole, Permission[]> = {
     'artists:write',
     'artists:graduate',
     'artists:delete',
+    'users:manage',
   ],
   editor: ['artworks:write', 'artworks:delete'],
 }

@@ -6,6 +6,7 @@ import { Button } from '../components/ui/Button'
 import { Field, Input } from '../components/ui/Field'
 import { IconAlert, IconEye, IconLock, IconMail, IconSparkle } from '../components/icons'
 import { isEmail } from '../utils/validators'
+import { loadSession } from '../api/session'
 
 interface LocationState {
   from?: { pathname?: string }
@@ -28,7 +29,7 @@ export function LoginPage() {
   const [loading, setLoading] = useState(false)
 
   if (user) {
-    return <Navigate to="/" replace />
+    return <Navigate to={user.role === 'editor' ? '/usuario' : '/'} replace />
   }
 
   const handleSubmit = async (event: FormEvent) => {
@@ -59,11 +60,14 @@ export function LoginPage() {
     try {
       if (mode === 'register') {
         await register(fullName.trim(), email.trim(), password)
-        navigate('/', { replace: true })
+        navigate('/usuario', { replace: true })
         return
       }
       await login(email.trim(), password)
-      navigate(state?.from?.pathname ?? '/', { replace: true })
+      const nextUser = loadSession()?.user
+      navigate(nextUser?.role === 'editor'
+        ? '/usuario'
+        : (state?.from?.pathname ?? '/'), { replace: true })
     } catch (error) {
       setFormError(error instanceof ApiError ? error.message : 'No fue posible iniciar sesión. Inténtalo de nuevo.')
     } finally {

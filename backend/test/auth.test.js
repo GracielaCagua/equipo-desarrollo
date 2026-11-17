@@ -52,7 +52,7 @@ test('matriz de permisos por rol', () => {
   assert.ok(hasPermission('admin', PERMISSIONS.USERS_MANAGE));
   assert.ok(hasPermission('admin', PERMISSIONS.MESSAGES_MANAGE));
   assert.ok(!hasPermission('editor', PERMISSIONS.MESSAGES_MANAGE));
-  assert.ok(hasPermission('editor', PERMISSIONS.CATALOG_WRITE));
+  assert.ok(!hasPermission('editor', PERMISSIONS.CATALOG_WRITE));
   assert.ok(!hasPermission('desconocido', PERMISSIONS.CATALOG_WRITE));
 });
 
@@ -81,10 +81,9 @@ test('rechaza tokens manipulados o con otro formato', async () => {
   assert.equal(res.status, 401);
 });
 
-test('con token válido la escritura llega a la validación del módulo', async () => {
-  // Cuerpo vacío => 400 del validador, lo que prueba que pasó la autenticación sin tocar la BD.
+test('un usuario registrado no puede escribir contenido administrativo', async () => {
   const res = await call('/categories', { method: 'POST', token: tokenFor('editor'), body: {} });
-  assert.equal(res.status, 400);
+  assert.equal(res.status, 403);
 });
 
 test('administración de usuarios disponible para superadmin y admin', async () => {

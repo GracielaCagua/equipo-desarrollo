@@ -22,7 +22,7 @@ export const ROLE_PERMISSIONS = Object.freeze({
     PERMISSIONS.USERS_MANAGE,
     PERMISSIONS.AUDIT_READ
   ],
-  editor: [PERMISSIONS.CATALOG_WRITE, PERMISSIONS.WORKS_WRITE, PERMISSIONS.EVENTS_WRITE]
+  editor: []
 });
 
 export const ROLES = Object.freeze(Object.keys(ROLE_PERMISSIONS));

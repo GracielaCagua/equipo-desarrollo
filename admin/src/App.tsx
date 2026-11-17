@@ -11,6 +11,8 @@ import { CategoriesPage } from './pages/categories/CategoriesPage'
 import { SubcategoriesPage } from './pages/categories/SubcategoriesPage'
 import { ArtistsPage } from './pages/artists/ArtistsPage'
 import { NotFoundPage } from './pages/NotFoundPage'
+import { UsersPage } from './pages/UsersPage'
+import { UserExplorerPage } from './pages/UserExplorerPage'
 
 export default function App() {
   return (
@@ -29,6 +31,8 @@ export default function App() {
                 <Route path="categorias" element={<CategoriesPage />} />
                 <Route path="subcategorias" element={<SubcategoriesPage />} />
                 <Route path="artistas" element={<ArtistsPage />} />
+                <Route path="usuarios" element={<UsersPage />} />
+                <Route path="usuario" element={<UserExplorerPage />} />
                 <Route path="*" element={<NotFoundPage />} />
               </Route>
             </Route>

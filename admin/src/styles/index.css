@@ -3663,6 +3663,87 @@ button {
     box-shadow: none;
   }
 
+  .user-explorer .public-filters {
+    display: grid;
+    grid-template-columns: 1.4fr repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+
+  .user-explorer .public-filters input,
+  .user-explorer .public-filters select {
+    height: 44px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    padding: 0 12px;
+    color: var(--ink);
+  }
+
+  .user-explorer .public-art-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .user-explorer .public-art-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .user-explorer .public-art-image {
+    height: 210px;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(135deg, #d9c5aa, #6c7f72 65%, #34354f);
+    color: #fff;
+    font-family: var(--serif);
+    font-size: 44px;
+    overflow: hidden;
+  }
+
+  .user-explorer .public-art-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .user-explorer .public-art-body {
+    padding: 16px;
+  }
+
+  .user-explorer .public-category {
+    color: var(--gold-dark);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .user-explorer .public-art-body h3 {
+    margin: 6px 0 3px;
+    font-size: 19px;
+  }
+
+  .user-explorer .public-art-body p {
+    margin: 0;
+    color: var(--muted);
+  }
+
+  .user-explorer .public-art-body small {
+    color: var(--muted);
+  }
+
+  .user-explorer .public-empty {
+    border: 1px dashed var(--line);
+    border-radius: 12px;
+    padding: 50px;
+    text-align: center;
+    color: var(--muted);
+  }
+
   @media (max-width: 860px) {
     .login-page { grid-template-columns: 1fr; }
     .login-brand { min-height: 52vh; }

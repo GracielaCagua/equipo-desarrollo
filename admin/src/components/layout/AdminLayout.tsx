@@ -17,11 +17,13 @@ import {
 import { Avatar } from '../ui/Avatar'
 
 const NAV_ITEMS = [
-  { to: '/', label: 'Panel general', icon: IconDashboard, end: true },
-  { to: '/obras', label: 'Obras', icon: IconArtwork },
-  { to: '/categorias', label: 'Categorías', icon: IconCategory },
-  { to: '/subcategorias', label: 'Subcategorías', icon: IconSubcategory },
-  { to: '/artistas', label: 'Artistas', icon: IconUsers },
+  { to: '/', label: 'Panel general', icon: IconDashboard, end: true, permission: null },
+  { to: '/obras', label: 'Obras', icon: IconArtwork, permission: 'artworks:write' as const },
+  { to: '/categorias', label: 'Categorías', icon: IconCategory, permission: 'categories:write' as const },
+  { to: '/subcategorias', label: 'Subcategorías', icon: IconSubcategory, permission: 'subcategories:write' as const },
+  { to: '/artistas', label: 'Artistas', icon: IconUsers, permission: 'artists:write' as const },
+  { to: '/usuarios', label: 'Usuarios', icon: IconUsers, permission: 'users:manage' as const },
+  { to: '/usuario', label: 'Explorar repositorio', icon: IconArtwork, permission: null, usersOnly: true },
 ]
 
 const PUBLIC_URL = import.meta.env.VITE_PUBLIC_URL ?? '#'
@@ -37,11 +39,13 @@ function sectionTitle(pathname: string): string {
   if (parts[0] === 'categorias') return 'Categorías'
   if (parts[0] === 'subcategorias') return 'Subcategorías'
   if (parts[0] === 'artistas') return 'Artistas'
+  if (parts[0] === 'usuarios') return 'Usuarios registrados'
+  if (parts[0] === 'usuario') return 'Explorar repositorio'
   return 'Administración'
 }
 
 export function AdminLayout() {
-  const { user, logout } = useAuth()
+  const { user, logout, can } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
@@ -77,7 +81,11 @@ export function AdminLayout() {
 
         <nav className="sidebar-nav" aria-label="Navegación principal">
           <span className="nav-label">Gestión</span>
-          {NAV_ITEMS.map((item) => {
+          {NAV_ITEMS.filter((item) => {
+            if ('usersOnly' in item) return user.role === 'editor'
+            if (item.permission) return can(item.permission)
+            return user.role !== 'editor'
+          }).map((item) => {
             const Icon = item.icon
             return (
               <NavLink
