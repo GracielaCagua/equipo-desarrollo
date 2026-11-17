@@ -106,7 +106,7 @@ function publicContact(){return `${siteHeader()}<main class="container"><div cla
 function authView(register=false){return `${siteHeader()}<main class="auth-scene"><div class="auth-left"><div><div class="eyebrow">Repositorio De Arte</div><h2>Un lugar para descubrir, conservar y compartir lo que creamos.</h2><p>Accede a una plataforma donde cada obra cuenta una historia y cada artista encuentra su espacio.</p></div><div class="small" style="position:relative;z-index:1;opacity:.75">ARTE · COMUNIDAD · PATRIMONIO</div></div><div class="auth-right"><div class="auth-card"><div class="eyebrow">${register?'Forma parte del archivo':'Bienvenido de nuevo'}</div><h1>${register?'Crear cuenta':'Iniciar sesión'}</h1><p>${register?'Regístrate como usuario para explorar el repositorio.':'Ingresa con tus credenciales para acceder a tu panel.'}</p><form class="stack-form" data-form="${register?'register':'login'}">${register?`<div class="field"><label for="full_name">Nombre completo</label><input id="full_name" name="full_name" class="input" minlength="2" maxlength="100" required placeholder="Tu nombre y apellido"></div>`:''}<div class="field"><label for="username">Usuario${register?'':' o correo electrónico'}</label><input id="username" name="username" class="input" minlength="3" required autocomplete="username" placeholder="${register?'Crea tu nombre de usuario':'Ejemplo: admin'}"></div>${register?`<div class="field"><label for="email">Correo electrónico</label><input id="email" name="email" class="input" type="email" required autocomplete="email" placeholder="tu@correo.com"></div>`:''}<div class="field"><label for="password">Contraseña</label><input id="password" name="password" class="input" type="password" minlength="${register?'8':'1'}" required autocomplete="${register?'new-password':'current-password'}" placeholder="${register?'Mínimo 8 caracteres':'Tu contraseña'}"></div><button class="btn btn-wide" type="submit">${register?'Crear cuenta y entrar':'Ingresar a mi panel'} ↗</button></form><div class="auth-switch">${register?'¿Ya tienes una cuenta?':'¿Todavía no tienes cuenta?'} <a class="text-link" href="#/${register?'login':'registro'}">${register?'Iniciar sesión':'Regístrate aquí'}</a></div><p class="auth-note">${register?'Las cuentas nuevas acceden al panel de usuario. Solo el administrador puede publicar y editar contenido.':'Acceso de demostración para administrador: usuario admin y contraseña admin123. Cámbiala antes de publicar la aplicación.'}</p></div></div></main>`;}
 function sidebar(){
   const items=[['overview','▦','Resumen'],['works','▤','Obras'],['categories','◇','Categorías'],['subcategories','▧','Subcategorías'],['artists','♙','Artistas'],['awards','★','Premios'],['exhibitions','▣','Exposiciones'],['messages','✉','Buzón de contacto'],['settings','⚙','Configuración']];
-  return `<aside class="sidebar">${brand(true)}<div><div class="side-label">Administración</div><nav aria-label="Panel administrador">${items.map(([id,icon,title])=>`<a href="#/admin" class="side-link ${S.section===id?'active':''}" data-action="admin-section" data-section="${id}"><span class="side-icon">${icon}</span><span>${title}</span>${id==='messages'&&S.stats.messages?`<span style="margin-left:auto;background:#bb7a58;padding:3px 6px;border-radius:9px;color:white">${S.stats.messages}</span>`:''}</a>`).join('')}</nav></div><div class="side-spacer"></div><div class="side-account"><strong>${esc(S.user?.full_name)}</strong><small>Administrador</small><a href="#/inicio" class="btn btn-light btn-small btn-wide" style="margin-top:14px">Ver sitio ↗</a><button class="btn btn-outline btn-small" data-action="logout">Cerrar sesión</button></div></aside>`;
+  return `<aside class="sidebar">${brand(true)}<div><div class="side-label">Administración</div><nav aria-label="Panel administrador">${items.map(([id,icon,title])=>`<a href="#/admin" class="side-link ${S.section===id?'active':''}" data-action="admin-section" data-section="${id}"><span class="side-icon">${icon}</span><span>${title}</span>${id==='messages'&&S.stats.messages?`<span style="margin-left:auto;background:#bb7a58;padding:3px 6px;border-radius:9px;color:white">${S.stats.messages}</span>`:''}</a>`).join('')}</nav></div><div class="side-spacer"></div><div class="side-account"><strong>${esc(S.user?.full_name)}</strong><small>Administrador</small><a href="#/inicio" class="btn btn-light btn-small btn-wide" style="margin-top:14px">Ver sitio ↗</a><button class="btn btn-sidebar-logout btn-small" data-action="logout">Cerrar sesión</button></div></aside>`;
 }
 const adminTitles={overview:'Panel general',works:'Gestión de obras',categories:'Categorías',subcategories:'Subcategorías',artists:'Artistas',awards:'Premios y reconocimientos',exhibitions:'Exposiciones',messages:'Buzón de contacto',settings:'Configuración'};
 function dashboard(){return `<div class="dashboard">${sidebar()}<main class="dash-main"><div class="dash-top"><div><small>Repositorio De Arte / Administración</small><h1>${esc(adminTitles[S.section]||'Panel general')}</h1></div><div class="dash-top-right"><a href="#/inicio" class="btn btn-outline btn-small">↗ Ver sitio público</a><div class="profile-bubble">A</div></div></div><div class="dash-body">${adminContent()}</div></main></div>${S.modal?renderModal():''}`;}
@@ -216,7 +216,17 @@ async function handleClick(el,event){
   }
   if(action==='edit'){const item=S[collections[entity]]?.find(x=>x.id===id);if(item){S.modal={type:entity,item};render();}return;}
   try {
-    if(action==='logout'){await request('POST','/api/auth/logout').catch(()=>{});S.token='';S.user=null;S.modal=null;localStorage.removeItem('ra_token');await loadData();history.replaceState(null,'','/');go('inicio');toast('Sesión cerrada.');return;}
+    if(action==='logout'){
+      const token=S.token;
+      S.token='';
+      S.user=null;
+      S.modal=null;
+      localStorage.removeItem('ra_token');
+      if(token) fetch('/api/auth/logout',{method:'POST',headers:{Authorization:`Bearer ${token}`}}).catch(()=>{});
+      history.replaceState(null,'','/');
+      location.replace('/');
+      return;
+    }
     if(action==='delete'){
       if(!confirm('¿Eliminar este registro? Esta acción no se puede deshacer.'))return;
       await request('DELETE',entity==='message'?`/api/messages/${id}`:`/api/${collections[entity]}/${id}`);await refresh();toast('Registro eliminado.');return;
@@ -236,6 +246,19 @@ function updateCatalogList(){
 }
 root.addEventListener('submit',e=>{const form=e.target.closest('form[data-form]');if(form){e.preventDefault();handleSubmit(form);}});
 root.addEventListener('click',e=>{if(e.target.id==='modal-backdrop'){S.modal=null;render();return;}const el=e.target.closest('[data-action]');if(el){if(el.tagName==='BUTTON'&&el.type==='submit')return;handleClick(el,e);}});
+root.addEventListener('click',e=>{
+  const logoutButton=e.target.closest('[data-action="logout"]');
+  if(!logoutButton)return;
+  e.preventDefault();
+  e.stopImmediatePropagation();
+  const token=S.token;
+  S.token='';
+  S.user=null;
+  localStorage.removeItem('ra_token');
+  if(token) fetch('/api/auth/logout',{method:'POST',headers:{Authorization:`Bearer ${token}`}}).catch(()=>{});
+  history.replaceState(null,'','/');
+  location.replace('/');
+});
 root.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ') && e.target.matches('[data-action="open-work"]')){e.preventDefault();handleClick(e.target,e);}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&S.modal){S.modal=null;render();}});
 root.addEventListener('input',e=>{if(e.target.id==='catalog-search'){S.filters.search=e.target.value;updateCatalogList();}});
