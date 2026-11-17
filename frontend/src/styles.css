@@ -115,3 +115,38 @@ footer { color: #837b74; font-size: .8rem; padding: 18px clamp(20px, 6vw, 88px);
   .grid-two { grid-template-columns: 1fr; }
   .contact-grid { grid-template-columns: 1fr; }
 }
+
+/* Galería visual */
+:root { background: #f5f0e9; }
+.app-shell { display: flex; min-height: 100vh; }
+.sidebar { background: #203d37; color: #f5f0e9; display: flex; flex-direction: column; min-height: 100vh; padding: 30px 24px 22px; position: fixed; width: 270px; }
+.brand { align-items: center; display: flex; gap: 11px; }
+.brand strong { display: block; font-family: 'Playfair Display', serif; font-size: 1.35rem; letter-spacing: .03em; }
+.brand .eyebrow { color: #d3a47e; font-size: .62rem; }
+.brand-mark { align-items: center; background: #d79a6f; border-radius: 50%; color: #203d37; display: flex; font-family: 'Playfair Display', serif; font-size: 1.5rem; height: 42px; justify-content: center; width: 42px; }
+.sidebar-intro { border-bottom: 1px solid #ffffff24; margin: 48px 0 25px; padding-bottom: 28px; }
+.sidebar-intro .eyebrow { color: #d79a6f; }
+.sidebar-intro h1 { font-size: 1.5rem; line-height: 1.15; margin: 10px 0; }
+.sidebar-intro p { color: #c2d0ca; font-size: .84rem; margin: 0; }
+.sidebar nav { display: flex; flex-direction: column; gap: 4px; }
+.nav-label { color: #9fb6ae; font-size: .68rem; font-weight: 700; letter-spacing: .1em; margin: 0 10px 8px; text-transform: uppercase; }
+.sidebar nav button { background: transparent; color: #cbd7d2; font-size: .88rem; padding: 11px 12px; text-align: left; }
+.sidebar nav button:hover, .sidebar nav .nav-active { background: #d79a6f; color: #203d37; transform: none; }
+.sidebar footer { color: #9fb6ae; font-size: .72rem; line-height: 1.6; margin-top: auto; padding: 20px 10px 0; text-align: left; }
+.main-shell { margin-left: 270px; min-width: 0; width: calc(100% - 270px); }
+.topbar { align-items: center; background: #fffaf5; border-bottom: 1px solid #e7ddd2; padding: 24px clamp(24px, 5vw, 72px); }
+.topbar h2 { font-size: 1.35rem; }
+.content { max-width: 1280px; padding: clamp(30px, 5vw, 62px); width: 100%; }
+.page-heading p { max-width: 680px; }
+.table-wrap, .card-item { box-shadow: 0 12px 30px #4e3b2b0b; }
+.card-item { background: #fffdfb; }
+
+@media (max-width: 800px) {
+  .app-shell { display: block; }
+  .sidebar { min-height: auto; padding: 18px; position: static; width: 100%; }
+  .sidebar-intro, .sidebar footer { display: none; }
+  .sidebar nav { flex-direction: row; overflow-x: auto; padding-top: 18px; }
+  .sidebar nav button { flex: 0 0 auto; text-align: center; }
+  .nav-label { display: none; }
+  .main-shell { margin-left: 0; width: 100%; }
+}
