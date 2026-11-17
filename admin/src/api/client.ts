@@ -59,7 +59,13 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
 
   if (response.status === 204) return undefined as T
   const data = payload as { data?: T } | T | null
-  return (data && typeof data === 'object' && 'data' in data ? (data as { data: T }).data : data) as T
+  if (data && typeof data === 'object' && 'data' in data) {
+    const payloadObject = data as { data: T; meta?: unknown; page?: unknown }
+    if (payloadObject.meta) return payloadObject as T
+    if (payloadObject.page !== undefined) return payloadObject as T
+    return payloadObject.data
+  }
+  return data as T
 }
 
 export { ApiError, errorMessage } from './errors'

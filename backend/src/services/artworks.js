@@ -61,7 +61,10 @@ export async function listArtworks(f) {
      LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
     [...params, f.limit, (f.page - 1) * f.limit],
   );
-  return { data: rows, page: f.page, limit: f.limit, total, pages: Math.ceil(total / f.limit) };
+  return {
+    data: rows,
+    meta: { page: f.page, limit: f.limit, total, totalPages: Math.ceil(total / f.limit) },
+  };
 }
 
 export async function createArtwork(d) {
