@@ -26,3 +26,16 @@
   border-color: #ffffff;
   color: #202b27;
 }
+
+.model-download {
+  position: absolute;
+  left: 18px;
+  bottom: 18px;
+  z-index: 3;
+  background: #202b27;
+  color: #ffffff;
+  border-radius: 7px;
+  padding: 9px 12px;
+  font-size: 11px;
+  font-weight: 700;
+}

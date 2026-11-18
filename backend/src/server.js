@@ -106,22 +106,45 @@ function stringField(o, k, min = 1, max = 160) {
 function slugImageData(dataUrl) {
   if (!dataUrl) return null;
   if (typeof dataUrl !== 'string') throw err(400, 'Imagen inválida.');
-  const m = /^data:image\/(png|jpeg|webp);base64,([a-zA-Z0-9+/=]+)$/.exec(dataUrl);
-  if (!m) throw err(400, 'Solo se admiten imágenes PNG, JPG o WEBP.');
+  const m = /^data:image\/(png|jpeg|jpg|webp|gif|bmp);base64,([a-zA-Z0-9+/=]+)$/.exec(dataUrl);
+  if (!m) throw err(400, 'Solo se admiten imágenes PNG, JPG, JPEG, WEBP, GIF o BMP.');
   const buf = Buffer.from(m[2], 'base64');
   if (!buf.length || buf.length > 5 * 1024 * 1024) throw err(400, 'La imagen debe pesar como máximo 5 MB.');
   const [kind] = m.slice(1);
   const png = buf.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10]));
   const jpg = buf.subarray(0,3).equals(Buffer.from([255,216,255]));
   const webp = buf.subarray(0,4).toString() === 'RIFF' && buf.subarray(8,12).toString() === 'WEBP';
-  if ((kind === 'png' && !png) || (kind === 'jpeg' && !jpg) || (kind === 'webp' && !webp)) throw err(400, 'La imagen no coincide con su formato.');
-  const ext = kind === 'jpeg' ? 'jpg' : kind;
+  const gif = buf.subarray(0, 3).toString() === 'GIF';
+  const bmp = buf.subarray(0, 2).toString() === 'BM';
+  const valid = (kind === 'png' && png) || ((kind === 'jpeg' || kind === 'jpg') && jpg) || (kind === 'webp' && webp) || (kind === 'gif' && gif) || (kind === 'bmp' && bmp);
+  if (!valid) throw err(400, 'La imagen no coincide con su formato.');
+  const ext = kind === 'jpeg' || kind === 'jpg' ? 'jpg' : kind;
   const filename = `${uuid()}.${ext}`;
   fs.writeFileSync(path.join(UPLOADS_DIR, filename), buf);
   return `/uploads/${filename}`;
 }
+function slugModelData(dataUrl, format) {
+  if (!dataUrl) return null;
+  const m = /^data:(?:model\/gltf-binary|model\/gltf\+json|application\/octet-stream|application\/json);base64,([a-zA-Z0-9+/=]+)$/.exec(dataUrl);
+  if (!m) throw err(400, 'El modelo 3D debe enviarse como GLB o glTF válido.');
+  const buf = Buffer.from(m[1], 'base64');
+  if (!buf.length || buf.length > 30 * 1024 * 1024) throw err(400, 'El modelo 3D debe pesar como máximo 30 MB.');
+  if (format === 'glb') {
+    if (buf.subarray(0, 4).toString() !== 'glTF' || buf.length < 20) throw err(400, 'El archivo GLB no tiene una firma glTF válida.');
+  } else if (format === 'gltf') {
+    try {
+      const parsed = JSON.parse(buf.toString('utf8'));
+      if (parsed.asset?.version !== '2.0' && parsed.asset?.version !== '1.0') throw Error();
+    } catch { throw err(400, 'El archivo glTF no contiene JSON válido.'); }
+  } else {
+    throw err(400, 'Formato 3D no admitido. Usa GLB o glTF.');
+  }
+  const filename = `${uuid()}.${format}`;
+  fs.writeFileSync(path.join(UPLOADS_DIR, filename), buf);
+  return `/uploads/${filename}`;
+}
 function disposeImage(url) {
-  if (typeof url === 'string' && /^\/uploads\/[a-z0-9-]+\.(jpg|png|webp)$/.test(url)) {
+  if (typeof url === 'string' && /^\/uploads\/[a-z0-9-]+\.(jpg|png|webp|gif|bmp|glb|gltf)$/.test(url)) {
     try { fs.unlinkSync(path.join(UPLOADS_DIR, path.basename(url))); } catch {}
   }
 }
@@ -183,7 +206,9 @@ async function api(req, res, url, user) {
     if (typeof b.password !== 'string' || b.password.length < 8 || b.password.length > 128) throw err(400, 'La contraseña debe tener al menos 8 caracteres.');
     if (db.users.some(u => u.username.toLowerCase() === username.toLowerCase() || u.email.toLowerCase() === email)) throw err(409, 'El usuario o correo ya están registrados.');
     const u = { id: uuid(), username, full_name, email, role: 'user', password_hash: passwordHash(b.password), created_at: now() };
-    db.users.push(u); save();
+    db.users.push(u);
+    db.artists.push({ id: uuid(), name: full_name, academic_status: 'student', program: safe(b.program).slice(0, 140), biography: '', owner_user_id: u.id, created_at: now() });
+    save();
     return json(res, { message: 'Cuenta creada. Ya puedes iniciar sesión.', user: publicUser(u) }, 201);
   }
   if (p === '/api/auth/login' && method === 'POST') {
@@ -288,38 +313,93 @@ async function api(req, res, url, user) {
   if(m && method==='DELETE'){adminOnly(user);findById('artists',m[1]);if(db.works.some(w=>w.artist_id===m[1]))throw err(409,'El artista tiene obras vinculadas.');db.artists=db.artists.filter(x=>x.id!==m[1]);save();return json(res,{message:'Artista eliminado.'});}
 
   if(p==='/api/works'&&method==='GET')return json(res,catalogWorks(user,url.searchParams));
+  if(p==='/api/works/mine'&&method==='GET') {
+    loginOnly(user);
+    if(user.role==='admin') return json(res,db.works.map(workView).sort((a,b)=>b.created_at.localeCompare(a.created_at)));
+    return json(res,db.works.filter(w=>w.owner_user_id===user.id).map(workView).sort((a,b)=>b.created_at.localeCompare(a.created_at)));
+  }
   if(p==='/api/works'&&method==='POST') {
-    adminOnly(user);const b=await bodyOf(req);checkWorkRelations(b);
-    if(!['published','draft'].includes(b.status))throw err(400,'Estado de publicación no válido.');
-    if(!['available','sold'].includes(b.sale_status))throw err(400,'Estado de venta no válido.');
-    const w={id:uuid(),title:stringField(b,'title',2,180),description:safe(b.description).slice(0,4000),artist_id:safe(b.artist_id),category_id:safe(b.category_id),subcategory_id:safe(b.subcategory_id),year:safe(b.year).slice(0,4),status:b.status,sale_status:b.sale_status,is_exhibited:bool(b.is_exhibited),has_award:bool(b.has_award),award_name:safe(b.award_name).slice(0,180),exhibition_name:safe(b.exhibition_name).slice(0,180),image_url:slugImageData(b.image_data),created_at:now()};
+    loginOnly(user);const b=await bodyOf(req);
+    if(user.role==='user') {
+      let ownArtist=db.artists.find(a=>a.owner_user_id===user.id);
+      if(!ownArtist) {
+        ownArtist={id:uuid(),name:user.full_name,academic_status:'student',program:'',biography:'',owner_user_id:user.id,created_at:now()};
+        db.artists.push(ownArtist);
+      }
+      b.artist_id=ownArtist.id;
+    }
+    checkWorkRelations(b);
+    if(user.role==='user' && b.status && b.status!=='draft')throw err(403,'Las obras nuevas de usuarios quedan en borrador hasta que las revise un administrador.');
+    if(!['published','draft'].includes(b.status || 'draft'))throw err(400,'Estado de publicación no válido.');
+    if(!['available','sold'].includes(b.sale_status||'available'))throw err(400,'Estado de venta no válido.');
+    let artist_id=safe(b.artist_id);
+    if(user.role==='user') {
+      let ownArtist=db.artists.find(a=>a.owner_user_id===user.id);
+      if(!ownArtist) {
+        ownArtist={id:uuid(),name:user.full_name,academic_status:'student',program:'',biography:'',owner_user_id:user.id,created_at:now()};
+        db.artists.push(ownArtist);
+      }
+      artist_id=ownArtist.id;
+    }
+    const modelFormat=safe(b.model_format).toLowerCase();
+    const w={id:uuid(),title:stringField(b,'title',2,180),description:safe(b.description).slice(0,4000),artist_id,category_id:safe(b.category_id),subcategory_id:safe(b.subcategory_id),year:safe(b.year).slice(0,4),status:user.role==='user'?'draft':(b.status||'draft'),sale_status:user.role==='user'?'available':(b.sale_status||'available'),is_exhibited:user.role==='admin'&&bool(b.is_exhibited),has_award:user.role==='admin'&&bool(b.has_award),award_name:user.role==='admin'?safe(b.award_name).slice(0,180):'',exhibition_name:user.role==='admin'?safe(b.exhibition_name).slice(0,180):'',image_url:slugImageData(b.image_data),model_url:modelFormat?slugModelData(b.model_data,modelFormat):null,model_format:modelFormat||null,owner_user_id:user.role==='user'?user.id:null,created_at:now()};
     db.works.push(w);save();return json(res,workView(w),201);
   }
   m=/^\/api\/works\/([^/]+)$/.exec(p);
   if(m && method==='GET'){const w=findById('works',m[1]);if(user?.role!=='admin' && (w.status!=='published' || !db.categories.some(c=>c.id===w.category_id&&c.is_active) || !db.subcategories.some(s=>s.id===w.subcategory_id&&s.is_active)))throw err(404,'Obra no disponible.');return json(res,workView(w));}
   if(m && (method==='PUT'||method==='PATCH')){
-    adminOnly(user);const w=findById('works',m[1]),b=await bodyOf(req);
+    loginOnly(user);const w=findById('works',m[1]),b=await bodyOf(req);
+    if(user.role==='user'&&w.owner_user_id!==user.id)throw err(403,'Solo puedes editar tus propias obras.');
+    if(method==='PUT'&&user.role==='user')b.status='draft';
     if(method==='PUT'){
+      if(user.role==='user') {
+        const ownArtist=db.artists.find(a=>a.owner_user_id===user.id);
+        if(ownArtist) b.artist_id=ownArtist.id;
+      }
       checkWorkRelations(b);w.title=stringField(b,'title',2,180);w.description=safe(b.description).slice(0,4000);w.artist_id=safe(b.artist_id);w.category_id=safe(b.category_id);w.subcategory_id=safe(b.subcategory_id);w.year=safe(b.year).slice(0,4);w.award_name=safe(b.award_name).slice(0,180);w.exhibition_name=safe(b.exhibition_name).slice(0,180);
     }
-    if(b.status!==undefined){if(!['published','draft'].includes(b.status))throw err(400,'Estado de publicación no válido.');w.status=b.status;}
-    if(b.sale_status!==undefined){if(!['available','sold'].includes(b.sale_status))throw err(400,'Estado de venta no válido.');w.sale_status=b.sale_status;}
-    if(typeof b.is_exhibited==='boolean')w.is_exhibited=b.is_exhibited;
-    if(typeof b.has_award==='boolean')w.has_award=b.has_award;
+    if(user.role==='admin') {
+      if(b.status!==undefined){if(!['published','draft'].includes(b.status))throw err(400,'Estado de publicación no válido.');w.status=b.status;}
+      if(b.sale_status!==undefined){if(!['available','sold'].includes(b.sale_status))throw err(400,'Estado de venta no válido.');w.sale_status=b.sale_status;}
+      if(typeof b.is_exhibited==='boolean')w.is_exhibited=b.is_exhibited;
+      if(typeof b.has_award==='boolean')w.has_award=b.has_award;
+    } else {
+      w.status='draft';
+      w.sale_status='available';
+      w.is_exhibited=false;
+      w.has_award=false;
+    }
     if(b.image_data){const old=w.image_url;w.image_url=slugImageData(b.image_data);disposeImage(old);}
     if(b.remove_image===true){disposeImage(w.image_url);w.image_url=null;}
+    if(b.model_format!==undefined) {
+      const modelFormat=safe(b.model_format).toLowerCase();
+      if(b.model_data) {
+        disposeImage(w.model_url);
+        w.model_url=slugModelData(b.model_data,modelFormat);
+        w.model_format=modelFormat;
+      } else if(b.remove_model===true) {
+        disposeImage(w.model_url);
+        w.model_url=null;
+        w.model_format=null;
+      }
+    }
     save();return json(res,workView(w));
   }
-  if(m && method==='DELETE'){adminOnly(user);const w=findById('works',m[1]);disposeImage(w.image_url);db.works=db.works.filter(x=>x.id!==m[1]);save();return json(res,{message:'Obra eliminada.'});}
+  if(m && method==='DELETE'){
+    loginOnly(user);const w=findById('works',m[1]);
+    if(user.role==='user'&&w.owner_user_id!==user.id)throw err(403,'Solo puedes eliminar tus propias obras.');
+    if(user.role==='user'&&w.status==='published')throw err(403,'Solicita al administrador que retire una obra publicada antes de eliminarla.');
+    disposeImage(w.image_url);disposeImage(w.model_url);db.works=db.works.filter(x=>x.id!==m[1]);save();return json(res,{message:'Obra eliminada.'});
+  }
   throw err(404,'Ruta de API no encontrada.');
 }
-const MIMES={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.jpg':'image/jpeg','.webp':'image/webp','.ico':'image/x-icon'};
+const MIMES={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp','.gif':'image/gif','.bmp':'image/bmp','.glb':'model/gltf-binary','.gltf':'model/gltf+json','.ico':'image/x-icon'};
 function staticFile(req,res,pathname){
   if (pathname === '/usuario' || pathname === '/login' || pathname === '/admin') pathname = '/';
   let f;
   if(pathname.startsWith('/uploads/')) {
     const name=pathname.slice('/uploads/'.length);
-    if(!/^[a-f0-9-]+\.(png|jpg|webp)$/.test(name))throw err(404,'Imagen no encontrada.');
+    if(!/^[a-f0-9-]+\.(png|jpg|jpeg|webp|gif|bmp|glb|gltf)$/.test(name))throw err(404,'Archivo no encontrado.');
     f=path.join(UPLOADS_DIR,name);
   } else {
     const name=pathname==='/'?'index.html':pathname.replace(/^\//,'');
