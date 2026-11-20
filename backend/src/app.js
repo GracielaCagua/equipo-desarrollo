@@ -69,6 +69,8 @@ if (fs.existsSync(adminDist)) {
 
 if (fs.existsSync(publicDist)) {
   app.use(express.static(publicDist));
+  app.get('/usuario', (_req, res) => res.sendFile(path.join(publicDist, 'index.html')));
+  app.get('/usuario/*', (_req, res) => res.sendFile(path.join(publicDist, 'index.html')));
   app.get('*', (_req, res) => res.sendFile(path.join(publicDist, 'index.html')));
 }
 

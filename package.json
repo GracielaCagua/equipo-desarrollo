@@ -1,20 +1,14 @@
 {
-  "name": "repositorio-obras",
+  "name": "repositorio-de-arte",
+  "version": "1.0.0",
   "private": true,
+  "type": "module",
+  "description": "Repositorio de arte: administrador, usuarios, obras, premios, exposiciones y contacto",
+  "engines": {"node": ">=20"},
   "scripts": {
-    "predev": "npm run build:admin && npm run build",
-    "dev": "concurrently --kill-others-on-fail --names backend,frontend \"npm run dev:backend\" \"npm run dev:frontend\"",
-    "install:all": "npm install --prefix backend && npm install --prefix frontend && npm install --prefix admin",
-    "dev:backend": "npm run dev --prefix backend",
-    "dev:frontend": "npm run dev --prefix frontend",
-    "db:migrate": "npm run db:migrate --prefix backend",
-    "db:seed-admin": "npm run db:seed-admin --prefix backend",
-    "build": "npm run build --prefix frontend",
-    "build:admin": "npm run build --prefix admin",
-    "typecheck:admin": "npm run typecheck --prefix admin",
-    "test": "npm test --prefix backend"
+    "start": "node backend/src/server.js",
+    "dev": "node --watch backend/src/server.js",
+    "test": "node --test tests/*.test.js"
   },
-  "devDependencies": {
-    "concurrently": "^10.0.7"
-  }
+  "optionalDependencies": {"nodemailer": "^7.0.0"}
 }
