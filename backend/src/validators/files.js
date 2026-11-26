@@ -6,7 +6,7 @@ const MB = 1024 * 1024;
 
 // Formatos y tamaños máximos por tipo (confirmar con el tutor)
 export const FILE_TYPES = {
-  image: { extensions: ['.jpg', '.jpeg', '.png', '.webp', '.gif'], maxBytes: 10 * MB },
+  image: { extensions: ['.jpg', '.jpeg', '.png', '.jpn'], maxBytes: 10 * MB },
   video: { extensions: ['.mp4', '.webm', '.mov'], maxBytes: 200 * MB },
   model3d: { extensions: ['.glb', '.gltf', '.obj', '.fbx', '.stl'], maxBytes: 100 * MB },
   document: { extensions: ['.pdf'], maxBytes: 20 * MB },
@@ -31,7 +31,8 @@ export function hasValidSignature(extension, h) {
   switch (extension) {
     case '.jpg':
     case '.jpeg':
-      return startsWith(h, [0xff, 0xd8, 0xff]);
+    case '.jpn':
+      return startsWith(h, [0xff, 0xd8, 0xff]) || startsWith(h, [0x89, ...ascii('PNG'), 0x0d, 0x0a, 0x1a, 0x0a]);
     case '.png':
       return startsWith(h, [0x89, ...ascii('PNG'), 0x0d, 0x0a, 0x1a, 0x0a]);
     case '.gif':

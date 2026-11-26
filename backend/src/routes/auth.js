@@ -8,9 +8,8 @@ import { asyncHandler } from '../utils/httpError.js';
 const router = Router();
 const limiter = createLoginLimiter({ maxAttempts: config.loginMaxAttempts, windowMs: config.loginWindowMinutes * 60000 });
 
-router.post('/register', asyncHandler(async (req, res) => {
-  const result = await service.registerUser(req.body, req.ip);
-  res.status(201).json(result);
+router.post('/register', asyncHandler(async (_req, res) => {
+  throw new HttpError(403, 'El registro de usuarios está deshabilitado. Solo el administrador puede ingresar.');
 }));
 
 router.post('/login', limiter, asyncHandler(async (req, res) => {

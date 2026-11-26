@@ -13,15 +13,12 @@ interface LocationState {
 }
 
 export function LoginPage() {
-  const { user, login, register } = useAuth()
+  const { user, login } = useAuth()
   const location = useLocation()
   const state = location.state as LocationState | null
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [fullName, setFullName] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [mode, setMode] = useState<'login' | 'register'>('login')
   const [showPassword, setShowPassword] = useState(false)
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({})
   const [formError, setFormError] = useState('')
@@ -35,22 +32,11 @@ export function LoginPage() {
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault()
     const nextErrors: typeof errors = {}
-    if (!email.trim()) nextErrors.email = mode === 'register' ? 'El correo es obligatorio.' : 'El usuario o correo es obligatorio.'
-    else if (mode === 'register' && !isEmail(email)) nextErrors.email = 'Ingresa un correo electrónico válido.'
-    else if (mode === 'login' && email !== 'admin' && !isEmail(email)) nextErrors.email = 'Ingresa un correo válido o usa "admin".'
+    if (!email.trim()) nextErrors.email = 'El usuario o correo es obligatorio.'
+    else if (email !== 'admin' && !isEmail(email)) nextErrors.email = 'Ingresa un correo válido o usa "admin".'
     if (!password) nextErrors.password = 'La contraseña es obligatoria.'
-    else if (password.length < (mode === 'register' ? 10 : 6)) {
-      nextErrors.password = mode === 'register'
-        ? 'La contraseña debe tener al menos 10 caracteres.'
-        : 'La contraseña debe tener al menos 6 caracteres.'
-    }
-    if (mode === 'register' && !fullName.trim()) {
-      setFormError('El nombre completo es obligatorio.')
-      return
-    }
-    if (mode === 'register' && confirmPassword !== password) {
-      setFormError('Las contraseñas no coinciden.')
-      return
+    else if (password.length < 6) {
+      nextErrors.password = 'La contraseña debe tener al menos 6 caracteres.'
     }
     setErrors(nextErrors)
     setFormError('')
@@ -58,16 +44,12 @@ export function LoginPage() {
 
     setLoading(true)
     try {
-      if (mode === 'register') {
-        await register(fullName.trim(), email.trim(), password)
-        window.location.replace('/usuario')
-        return
-      }
       await login(email.trim(), password)
       const nextUser = loadSession()?.user
-      window.location.replace(nextUser?.role === 'editor'
-        ? '/usuario'
-        : (state?.from?.pathname?.startsWith('/admin') ? state.from.pathname : '/admin'))
+      if (nextUser && nextUser.role !== 'admin' && nextUser.role !== 'superadmin') {
+        throw new ApiError('Solo los administradores pueden ingresar al sistema.', 403)
+      }
+      window.location.replace(state?.from?.pathname?.startsWith('/admin') ? state.from.pathname : '/admin')
     } catch (error) {
       setFormError(error instanceof ApiError ? error.message : 'No fue posible iniciar sesión. Inténtalo de nuevo.')
     } finally {
@@ -75,10 +57,9 @@ export function LoginPage() {
     }
   }
 
-  const fillDemo = (role: 'admin' | 'editor') => {
-    setMode('login')
-    setEmail(role === 'admin' ? 'admin' : 'editor@repositorio.edu.co')
-    setPassword(role === 'admin' ? 'admin123' : 'editor123')
+  const fillDemo = () => {
+    setEmail('admin')
+    setPassword('admin123')
     setErrors({})
     setFormError('')
   }
@@ -129,14 +110,9 @@ export function LoginPage() {
       <section className="login-panel">
         <div className="login-card">
           <div className="login-card-head">
-            <span className="eyebrow">Bienvenido de nuevo</span>
-            <h2>{mode === 'login' ? 'Iniciar sesión' : 'Crear cuenta'}</h2>
-            <p>{mode === 'login' ? 'Accede con tu cuenta para continuar.' : 'Regístrate como usuario del repositorio.'}</p>
-          </div>
-
-          <div className="auth-mode-tabs" role="tablist" aria-label="Tipo de acceso">
-            <button type="button" className={mode === 'login' ? 'active' : ''} onClick={() => setMode('login')}>Iniciar sesión</button>
-            <button type="button" className={mode === 'register' ? 'active' : ''} onClick={() => setMode('register')}>Crear cuenta</button>
+            <span className="eyebrow">Acceso administrativo</span>
+            <h2>Iniciar sesión</h2>
+            <p>Solo el administrador del sistema puede ingresar al repositorio.</p>
           </div>
 
           {formError && (
@@ -147,18 +123,6 @@ export function LoginPage() {
           )}
 
           <form onSubmit={handleSubmit} noValidate>
-            {mode === 'register' && (
-              <Field label="Nombre completo" htmlFor="fullName" required>
-                <Input
-                  id="fullName"
-                  type="text"
-                  autoComplete="name"
-                  placeholder="Tu nombre"
-                  value={fullName}
-                  onChange={(event) => setFullName(event.target.value)}
-                />
-              </Field>
-            )}
             <Field label="Usuario o correo" htmlFor="email" required error={errors.email}>
               <div className="input-with-icon">
                 <IconMail size={18} />
@@ -203,40 +167,20 @@ export function LoginPage() {
               </div>
             </Field>
 
-            {mode === 'register' && (
-              <Field label="Confirmar contraseña" htmlFor="confirmPassword" required>
-                <div className="input-with-icon">
-                  <IconLock size={18} />
-                  <Input
-                    id="confirmPassword"
-                    type={showPassword ? 'text' : 'password'}
-                    autoComplete="new-password"
-                    placeholder="••••••••"
-                    value={confirmPassword}
-                    onChange={(event) => setConfirmPassword(event.target.value)}
-                  />
-                </div>
-              </Field>
-            )}
-
             <Button type="submit" className="login-submit" loading={loading}>
-              {mode === 'login' ? 'Iniciar sesión' : 'Crear cuenta'}
+              Iniciar sesión como administrador
             </Button>
           </form>
 
           <div className="demo-box">
             <div className="demo-box-head">
-              <strong>Cuentas de demostración</strong>
+              <strong>Acceso de demostración</strong>
               <span>El panel funciona sin backend en modo demo.</span>
             </div>
             <div className="demo-actions">
-              <button type="button" onClick={() => fillDemo('admin')}>
+              <button type="button" onClick={() => fillDemo()}>
                 <strong>Administrador</strong>
                 <span>admin · admin123</span>
-              </button>
-              <button type="button" onClick={() => fillDemo('editor')}>
-                <strong>Editor</strong>
-                <span>editor@repositorio.edu.co · editor123</span>
               </button>
             </div>
           </div>

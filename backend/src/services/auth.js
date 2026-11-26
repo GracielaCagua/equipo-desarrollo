@@ -53,6 +53,9 @@ export async function login(body, ip) {
   const valid = user ? await verifyPassword(password, user.password_hash) : false;
   if (!valid) throw new HttpError(401, 'Correo o contraseña incorrectos');
   if (!user.is_active) throw new HttpError(403, 'La cuenta está desactivada');
+  if (user.role !== 'admin' && user.role !== 'superadmin') {
+    throw new HttpError(403, 'Acceso denegado. Solo el administrador puede ingresar al sistema.');
+  }
 
   const { rows: updated } = await query(
     `UPDATE admin_users SET last_login_at = NOW() WHERE id = $1 RETURNING ${PUBLIC_FIELDS}`,

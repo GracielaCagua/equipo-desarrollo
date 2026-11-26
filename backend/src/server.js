@@ -106,19 +106,16 @@ function stringField(o, k, min = 1, max = 160) {
 function slugImageData(dataUrl) {
   if (!dataUrl) return null;
   if (typeof dataUrl !== 'string') throw err(400, 'Imagen inválida.');
-  const m = /^data:image\/(png|jpeg|jpg|webp|gif|bmp);base64,([a-zA-Z0-9+/=]+)$/.exec(dataUrl);
-  if (!m) throw err(400, 'Solo se admiten imágenes PNG, JPG, JPEG, WEBP, GIF o BMP.');
+  const m = /^data:image\/(png|jpeg|jpg|jpn);base64,([a-zA-Z0-9+/=]+)$/.exec(dataUrl);
+  if (!m) throw err(400, 'Solo se admiten imágenes en formato PNG o JPG/JPN.');
   const buf = Buffer.from(m[2], 'base64');
   if (!buf.length || buf.length > 5 * 1024 * 1024) throw err(400, 'La imagen debe pesar como máximo 5 MB.');
   const [kind] = m.slice(1);
   const png = buf.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10]));
   const jpg = buf.subarray(0,3).equals(Buffer.from([255,216,255]));
-  const webp = buf.subarray(0,4).toString() === 'RIFF' && buf.subarray(8,12).toString() === 'WEBP';
-  const gif = buf.subarray(0, 3).toString() === 'GIF';
-  const bmp = buf.subarray(0, 2).toString() === 'BM';
-  const valid = (kind === 'png' && png) || ((kind === 'jpeg' || kind === 'jpg') && jpg) || (kind === 'webp' && webp) || (kind === 'gif' && gif) || (kind === 'bmp' && bmp);
-  if (!valid) throw err(400, 'La imagen no coincide con su formato.');
-  const ext = kind === 'jpeg' || kind === 'jpg' ? 'jpg' : kind;
+  const valid = (kind === 'png' && png) || ((kind === 'jpeg' || kind === 'jpg' || kind === 'jpn') && (jpg || png));
+  if (!valid) throw err(400, 'La imagen no coincide con su formato. Solo se aceptan PNG o JPG/JPN.');
+  const ext = kind === 'png' ? 'png' : (kind === 'jpn' ? 'jpn' : 'jpg');
   const filename = `${uuid()}.${ext}`;
   fs.writeFileSync(path.join(UPLOADS_DIR, filename), buf);
   return `/uploads/${filename}`;
@@ -197,25 +194,14 @@ async function api(req, res, url, user) {
   const method = req.method;
   if (p === '/api/health' && method === 'GET') return json(res, { status: 'ok', app: 'Repositorio De Arte' });
   if (p === '/api/auth/register' && method === 'POST') {
-    const b = await bodyOf(req);
-    const username = stringField(b, 'username', 3, 32);
-    const full_name = stringField(b, 'full_name', 2, 100);
-    const email = stringField(b, 'email', 5, 200).toLowerCase();
-    if (!/^[a-zA-Z0-9._-]+$/.test(username)) throw err(400, 'El usuario solo puede incluir letras, números, puntos, guiones y guiones bajos.');
-    if (!isEmail(email)) throw err(400, 'Ingresa un correo válido.');
-    if (typeof b.password !== 'string' || b.password.length < 8 || b.password.length > 128) throw err(400, 'La contraseña debe tener al menos 8 caracteres.');
-    if (db.users.some(u => u.username.toLowerCase() === username.toLowerCase() || u.email.toLowerCase() === email)) throw err(409, 'El usuario o correo ya están registrados.');
-    const u = { id: uuid(), username, full_name, email, role: 'user', password_hash: passwordHash(b.password), created_at: now() };
-    db.users.push(u);
-    db.artists.push({ id: uuid(), name: full_name, academic_status: 'student', program: safe(b.program).slice(0, 140), biography: '', owner_user_id: u.id, created_at: now() });
-    save();
-    return json(res, { message: 'Cuenta creada. Ya puedes iniciar sesión.', user: publicUser(u) }, 201);
+    throw err(403, 'El registro de usuarios está deshabilitado. Solo el administrador puede ingresar.');
   }
   if (p === '/api/auth/login' && method === 'POST') {
     const b = await bodyOf(req);
-    const identifier = safe(b.username).toLowerCase();
+    const identifier = safe(b.username || b.email).toLowerCase();
     const u = db.users.find(x => x.username.toLowerCase() === identifier || x.email.toLowerCase() === identifier);
     if (!u || typeof b.password !== 'string' || !passwordMatches(b.password, u.password_hash)) throw err(401, 'Usuario o contraseña incorrectos.');
+    if (u.role !== 'admin') throw err(403, 'Acceso denegado. Solo el administrador puede ingresar al sistema.');
     const token = crypto.randomBytes(32).toString('hex');
     const expires_at = new Date(Date.now() + 7 * 86400000).toISOString();
     db.sessions = db.sessions.filter(s => new Date(s.expires_at) > new Date());
@@ -319,36 +305,19 @@ async function api(req, res, url, user) {
     return json(res,db.works.filter(w=>w.owner_user_id===user.id).map(workView).sort((a,b)=>b.created_at.localeCompare(a.created_at)));
   }
   if(p==='/api/works'&&method==='POST') {
-    loginOnly(user);const b=await bodyOf(req);
-    if(user.role==='user') {
-      let ownArtist=db.artists.find(a=>a.owner_user_id===user.id);
-      if(!ownArtist) {
-        ownArtist={id:uuid(),name:user.full_name,academic_status:'student',program:'',biography:'',owner_user_id:user.id,created_at:now()};
-        db.artists.push(ownArtist);
-      }
-      b.artist_id=ownArtist.id;
-    }
+    adminOnly(user);const b=await bodyOf(req);
     checkWorkRelations(b);
-    if(user.role==='user' && b.status && b.status!=='draft')throw err(403,'Las obras nuevas de usuarios quedan en borrador hasta que las revise un administrador.');
     if(!['published','draft'].includes(b.status || 'draft'))throw err(400,'Estado de publicación no válido.');
     if(!['available','sold'].includes(b.sale_status||'available'))throw err(400,'Estado de venta no válido.');
-    let artist_id=safe(b.artist_id);
-    if(user.role==='user') {
-      let ownArtist=db.artists.find(a=>a.owner_user_id===user.id);
-      if(!ownArtist) {
-        ownArtist={id:uuid(),name:user.full_name,academic_status:'student',program:'',biography:'',owner_user_id:user.id,created_at:now()};
-        db.artists.push(ownArtist);
-      }
-      artist_id=ownArtist.id;
-    }
+    const artist_id=safe(b.artist_id);
     const modelFormat=safe(b.model_format).toLowerCase();
-    const w={id:uuid(),title:stringField(b,'title',2,180),description:safe(b.description).slice(0,4000),artist_id,category_id:safe(b.category_id),subcategory_id:safe(b.subcategory_id),year:safe(b.year).slice(0,4),status:user.role==='user'?'draft':(b.status||'draft'),sale_status:user.role==='user'?'available':(b.sale_status||'available'),is_exhibited:user.role==='admin'&&bool(b.is_exhibited),has_award:user.role==='admin'&&bool(b.has_award),award_name:user.role==='admin'?safe(b.award_name).slice(0,180):'',exhibition_name:user.role==='admin'?safe(b.exhibition_name).slice(0,180):'',image_url:slugImageData(b.image_data),model_url:modelFormat?slugModelData(b.model_data,modelFormat):null,model_format:modelFormat||null,owner_user_id:user.role==='user'?user.id:null,created_at:now()};
+    const w={id:uuid(),title:stringField(b,'title',2,180),description:safe(b.description).slice(0,4000),artist_id,category_id:safe(b.category_id),subcategory_id:safe(b.subcategory_id),year:safe(b.year).slice(0,4),status:b.status||'draft',sale_status:b.sale_status||'available',is_exhibited:bool(b.is_exhibited),has_award:bool(b.has_award),award_name:safe(b.award_name).slice(0,180),exhibition_name:safe(b.exhibition_name).slice(0,180),image_url:slugImageData(b.image_data),model_url:modelFormat?slugModelData(b.model_data,modelFormat):null,model_format:modelFormat||null,owner_user_id:user.id,created_at:now()};
     db.works.push(w);save();return json(res,workView(w),201);
   }
   m=/^\/api\/works\/([^/]+)$/.exec(p);
   if(m && method==='GET'){const w=findById('works',m[1]);if(user?.role!=='admin' && (w.status!=='published' || !db.categories.some(c=>c.id===w.category_id&&c.is_active) || !db.subcategories.some(s=>s.id===w.subcategory_id&&s.is_active)))throw err(404,'Obra no disponible.');return json(res,workView(w));}
   if(m && (method==='PUT'||method==='PATCH')){
-    loginOnly(user);const w=findById('works',m[1]),b=await bodyOf(req);
+    adminOnly(user);const w=findById('works',m[1]),b=await bodyOf(req);
     if(user.role==='user'&&w.owner_user_id!==user.id)throw err(403,'Solo puedes editar tus propias obras.');
     if(method==='PUT'&&user.role==='user')b.status='draft';
     if(method==='PUT'){
@@ -386,20 +355,18 @@ async function api(req, res, url, user) {
     save();return json(res,workView(w));
   }
   if(m && method==='DELETE'){
-    loginOnly(user);const w=findById('works',m[1]);
-    if(user.role==='user'&&w.owner_user_id!==user.id)throw err(403,'Solo puedes eliminar tus propias obras.');
-    if(user.role==='user'&&w.status==='published')throw err(403,'Solicita al administrador que retire una obra publicada antes de eliminarla.');
+    adminOnly(user);const w=findById('works',m[1]);
     disposeImage(w.image_url);disposeImage(w.model_url);db.works=db.works.filter(x=>x.id!==m[1]);save();return json(res,{message:'Obra eliminada.'});
   }
   throw err(404,'Ruta de API no encontrada.');
 }
-const MIMES={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp','.gif':'image/gif','.bmp':'image/bmp','.glb':'model/gltf-binary','.gltf':'model/gltf+json','.ico':'image/x-icon'};
+const MIMES={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.jpn':'image/jpeg','.webp':'image/webp','.gif':'image/gif','.bmp':'image/bmp','.glb':'model/gltf-binary','.gltf':'model/gltf+json','.ico':'image/x-icon'};
 function staticFile(req,res,pathname){
   if (pathname === '/usuario' || pathname === '/login' || pathname === '/admin') pathname = '/';
   let f;
   if(pathname.startsWith('/uploads/')) {
     const name=pathname.slice('/uploads/'.length);
-    if(!/^[a-f0-9-]+\.(png|jpg|jpeg|webp|gif|bmp|glb|gltf)$/.test(name))throw err(404,'Archivo no encontrado.');
+    if(!/^[a-f0-9-]+\.(png|jpg|jpeg|jpn|webp|gif|bmp|glb|gltf)$/.test(name))throw err(404,'Archivo no encontrado.');
     f=path.join(UPLOADS_DIR,name);
   } else {
     const name=pathname==='/'?'index.html':pathname.replace(/^\//,'');

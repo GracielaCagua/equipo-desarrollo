@@ -30,21 +30,8 @@ export async function listAdminUsers() {
   return rows;
 }
 
-export async function createAdminUser(body, actor) {
-  const fullName = requiredText(body.full_name, 'full_name');
-  const email = validateEmail(body.email);
-  const role = validateRole(body.role ?? 'editor');
-  const password = validatePasswordStrength(body.password);
-  try {
-    const { rows } = await query(
-      `INSERT INTO admin_users (full_name, email, password_hash, role) VALUES ($1, $2, $3, $4) RETURNING ${FIELDS}`,
-      [fullName, email, await hashPassword(password), role]
-    );
-    await logAction({ userId: actor.id, action: 'users.create', entity: 'admin_users', entityId: rows[0].id, details: { role } });
-    return rows[0];
-  } catch (error) {
-    return uniqueEmail(error);
-  }
+export async function createAdminUser() {
+  throw new HttpError(403, 'La creación de usuarios está deshabilitada.');
 }
 
 export async function updateAdminUser(id, body, actor) {

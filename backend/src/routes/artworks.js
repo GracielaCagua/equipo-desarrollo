@@ -20,6 +20,9 @@ router.get('/', asyncHandler(async (req, res) => {
 }));
 
 router.post('/', asyncHandler(async (req, res) => {
+  if (req.user && req.user.role !== 'admin' && req.user.role !== 'superadmin') {
+    throw fail(403, 'Solo los administradores pueden subir obras.');
+  }
   res.status(201).json(await service.createArtwork(validateArtworkCreate(req.body)));
 }));
 
@@ -42,6 +45,9 @@ router.delete('/:id', asyncHandler(async (req, res) => {
 }));
 
 router.post('/:id/files', asyncHandler(async (req, res) => {
+  if (req.user && req.user.role !== 'admin' && req.user.role !== 'superadmin') {
+    throw fail(403, 'Solo los administradores pueden subir archivos de obras.');
+  }
   const workId = idParam(req.params.id);
   await service.getArtwork(workId); // si la obra no existe, no se guarda nada
 

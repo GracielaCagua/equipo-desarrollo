@@ -12,13 +12,13 @@ export interface FileRule {
 
 export const FILE_RULES: Record<MediaKind, FileRule> = {
   image: {
-    accept: ['image/jpeg', 'image/png', 'image/webp'],
-    acceptLabel: 'JPG, PNG o WebP',
+    accept: ['image/jpeg', 'image/png', 'image/jpg', 'image/jpn', '.png', '.jpg', '.jpeg', '.jpn'],
+    acceptLabel: 'PNG o JPG/JPN',
     maxMB: 8,
     multiple: true,
     max: 8,
     label: 'Imágenes de la obra',
-    hint: 'JPG, PNG o WebP · máximo 8 MB por archivo · hasta 8 imágenes',
+    hint: 'PNG o JPG/JPN · máximo 8 MB por archivo · hasta 8 imágenes',
   },
   video: {
     accept: ['video/mp4', 'video/webm', 'video/quicktime'],
@@ -51,7 +51,13 @@ export function validateFiles(files: File[], kind: MediaKind, currentCount = 0):
   const errors: string[] = []
 
   files.forEach((file) => {
-    if (!rule.accept.includes(file.type)) {
+    const ext = file.name.toLowerCase().split('.').pop()
+    const isImage = kind === 'image'
+    const allowedImageExts = ['png', 'jpg', 'jpeg', 'jpn']
+    const hasValidExt = !isImage || (Boolean(ext) && allowedImageExts.includes(ext!))
+    const isAcceptedMime = rule.accept.includes(file.type) || (isImage && Boolean(ext) && allowedImageExts.includes(ext!))
+
+    if (!hasValidExt || !isAcceptedMime) {
       errors.push(`«${file.name}» no es un formato permitido (${rule.acceptLabel}).`)
       return
     }
