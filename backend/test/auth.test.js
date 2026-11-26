@@ -49,10 +49,10 @@ test('exige contraseñas robustas', () => {
 test('matriz de permisos por rol', () => {
   assert.deepEqual(ROLES, ['superadmin', 'admin', 'editor']);
   assert.ok(hasPermission('superadmin', PERMISSIONS.USERS_MANAGE));
-  assert.ok(!hasPermission('admin', PERMISSIONS.USERS_MANAGE));
+  assert.ok(hasPermission('admin', PERMISSIONS.USERS_MANAGE));
   assert.ok(hasPermission('admin', PERMISSIONS.MESSAGES_MANAGE));
   assert.ok(!hasPermission('editor', PERMISSIONS.MESSAGES_MANAGE));
-  assert.ok(hasPermission('editor', PERMISSIONS.CATALOG_WRITE));
+  assert.ok(!hasPermission('editor', PERMISSIONS.CATALOG_WRITE));
   assert.ok(!hasPermission('desconocido', PERMISSIONS.CATALOG_WRITE));
 });
 
@@ -68,6 +68,12 @@ test('escrituras del catálogo exigen sesión', async () => {
   }
 });
 
+test('obras multimedia y bandeja de contacto exigen sesión para escribir o administrar', async () => {
+  assert.equal((await call('/artworks', { method: 'POST', body: {} })).status, 401);
+  assert.equal((await call('/contact/messages')).status, 401);
+  assert.equal((await call('/contact/messages/1', { method: 'DELETE' })).status, 401);
+});
+
 test('rechaza tokens manipulados o con otro formato', async () => {
   const forged = `${tokenFor('superadmin').slice(0, -3)}abc`;
   assert.equal((await call('/categories', { method: 'POST', token: forged, body: {} })).status, 401);
@@ -75,15 +81,14 @@ test('rechaza tokens manipulados o con otro formato', async () => {
   assert.equal(res.status, 401);
 });
 
-test('con token válido la escritura llega a la validación del módulo', async () => {
-  // Cuerpo vacío => 400 del validador, lo que prueba que pasó la autenticación sin tocar la BD.
+test('un usuario registrado no puede escribir contenido administrativo', async () => {
   const res = await call('/categories', { method: 'POST', token: tokenFor('editor'), body: {} });
-  assert.equal(res.status, 400);
+  assert.equal(res.status, 403);
 });
 
-test('administración de usuarios solo para superadmin', async () => {
+test('administración de usuarios disponible para superadmin y admin', async () => {
   assert.equal((await call('/admin-users')).status, 401);
-  assert.equal((await call('/admin-users', { token: tokenFor('admin') })).status, 403);
+  assert.equal((await call('/admin-users', { token: tokenFor('admin') })).status, 200);
   assert.equal((await call('/admin-users', { token: tokenFor('editor') })).status, 403);
   // Validación previa a la BD: el superadmin pasa los guardas y recibe 400 por datos incompletos.
   const res = await call('/admin-users', { method: 'POST', token: tokenFor('superadmin'), body: {} });

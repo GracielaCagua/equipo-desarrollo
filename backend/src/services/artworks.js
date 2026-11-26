@@ -5,6 +5,9 @@ import { fileUrl, removeStoredFile } from './storage.js';
 // w.* incluye también las columnas que agreguen otros módulos (p. ej. estado comercial)
 const SELECT_ARTWORK = `
   SELECT w.*,
+         CONCAT(a.first_name, ' ', a.last_name) AS artist_name,
+         c.name AS category_name,
+         s.name AS subcategory_name,
          COALESCE((
            SELECT json_agg(json_build_object(
                     'id', f.id, 'file_type', f.file_type, 'original_name', f.original_name,
@@ -12,7 +15,10 @@ const SELECT_ARTWORK = `
                   ) ORDER BY f.id)
            FROM work_files f WHERE f.work_id = w.id
          ), '[]'::json) AS files
-  FROM works w`;
+  FROM works w
+  LEFT JOIN artists a ON a.id = w.artist_id
+  LEFT JOIN categories c ON c.id = w.category_id
+  LEFT JOIN subcategories s ON s.id = w.subcategory_id`;
 
 function mapDbError(err) {
   if (err.code === '23503') {
@@ -55,7 +61,10 @@ export async function listArtworks(f) {
      LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
     [...params, f.limit, (f.page - 1) * f.limit],
   );
-  return { data: rows, page: f.page, limit: f.limit, total, pages: Math.ceil(total / f.limit) };
+  return {
+    data: rows,
+    meta: { page: f.page, limit: f.limit, total, totalPages: Math.ceil(total / f.limit) },
+  };
 }
 
 export async function createArtwork(d) {

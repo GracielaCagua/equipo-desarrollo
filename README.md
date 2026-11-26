@@ -1,75 +1,108 @@
-# Repositorio Universitario de Obras
+# Repositorio De Arte
 
-> Arquitectura, modelo de datos, autenticación y roles: [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md) ·
-> Convenciones de API: [docs/API_CONVENCIONES.md](docs/API_CONVENCIONES.md) ·
-> Entorno y despliegue: [docs/DESPLIEGUE.md](docs/DESPLIEGUE.md) ·
-> Integración frontend: [docs/INTEGRACION_FRONTEND.md](docs/INTEGRACION_FRONTEND.md) ·
-> Flujo Git: [CONTRIBUTING.md](CONTRIBUTING.md)
+Aplicación completa para gestionar obras de arte de estudiantes y graduados. Contiene dos perfiles independientes: **administrador** y **usuario**, con un diseño adaptable a celulares y computadoras.
 
-## Módulo de categorías, subcategorías y artistas
+## Cómo ejecutar (Windows, macOS o Linux)
 
-Módulo independiente para administrar la clasificación y los perfiles de artistas del repositorio universitario de obras. La API persiste las operaciones en PostgreSQL; no se usan datos ficticios.
+1. Instala **Node.js 20 o superior** si aún no lo tienes: https://nodejs.org/
+2. Descomprime el ZIP. Abre la carpeta **Repositorio-De-Arte** en Visual Studio Code.
+3. Abre **Terminal > Nueva terminal** en la raíz del proyecto.
+4. Ejecuta:
 
-## Tecnologías
+   ```bash
+   npm start
+   ```
 
-- Node.js, Express y PostgreSQL.
-- React 18 y Vite.
-- JavaScript ES modules.
+5. Abre **http://localhost:3000** en el navegador.
+
+> **No necesitas PostgreSQL ni ejecutar `npm install` para comenzar.** La aplicación utiliza funciones incluidas en Node.js y guarda los datos de forma local en `backend/data/repositorio.json` (el archivo se crea automáticamente).
+
+### Datos de acceso iniciales
+
+- **Administrador:** usuario `admin`, contraseña `admin123`.
+- **Usuarios normales:** pulsa **Crear cuenta**. Después del registro entrarás automáticamente al panel de usuario. Los usuarios también pueden iniciar sesión con su correo electrónico.
+
+⚠️ **IMPORTANTE:** La contraseña del administrador es solo para demostración. Antes de publicar la aplicación en Internet, cámbiala en **Administración > Configuración > Seguridad de cuenta**. Este sistema está preparado para ejecución local / proyecto académico, no para desplegarlo públicamente sin medidas adicionales como HTTPS, copias de seguridad, rate limiting y endurecimiento del servidor.
+
+## Qué incluye
+
+| Funcionalidad | Administrador | Usuario |
+|---|---|---|
+| Registro e inicio de sesión | Accede con credenciales iniciales | Crea cuenta e inicia sesión |
+| Panel independiente | Sí | Sí |
+| Categorías y subcategorías | Crear, editar, activar/desactivar, eliminar si no hay relaciones | Explorar y filtrar |
+| Estudiantes y graduados | Crear perfiles, editar, cambiar situación académica | Consultar perfiles |
+| Obras | Crear, editar, cargar imágenes y eliminar | Ver fichas, buscar y filtrar |
+| Publicación | Publicar u ocultar obras | Solo obras publicadas |
+| Premios | Marcar obra premiada y escribir nombre del premio | Ventana de premios |
+| Exposiciones | Marcar obra expuesta y escribir nombre de exposición | Ventana de exposiciones |
+| Estado de venta | Vendida / No vendida | Filtrar obras expuestas |
+| Contacto | Leer, marcar y eliminar mensajes, configurar correo | Enviar consultas |
 
 ## Estructura
 
 ```text
-backend/
-  src/config, db, middleware, routes, services, validators
-  sql/001_init.sql
-  test/
-frontend/
-  src/components, pages, services
+Repositorio-De-Arte/
+├── backend/
+│   ├── src/server.js         # API, roles, autenticación, datos y servidor web
+│   ├── data/                 # Datos persistentes (se crea repositorio.json)
+│   └── uploads/              # Imágenes subidas de obras
+├── frontend/
+│   ├── index.html            # Página HTML
+│   ├── styles.css            # Estilos responsivos
+│   ├── app.js                # Interfaz y comportamiento
+│   └── favicon.svg           # Ícono de la aplicación
+├── tests/integracion.test.js # Prueba del flujo completo
+├── package.json
+└── README.md
 ```
 
-## Instalación y configuración
+## Configurar buzón y correo
 
-Requisitos: Node.js 20+, npm y PostgreSQL 14+ (o `docker compose up -d`).
+Todos los mensajes enviados por **Contacto** se guardan en el buzón del administrador, incluso si no configuras correo SMTP.
 
-1. Cree una base de datos, por ejemplo `repositorio_obras`.
-2. Copie `backend/.env.example` a `backend/.env` y ajuste `DATABASE_URL`, `JWT_SECRET` y `ADMIN_*`. No versionar `.env`.
-3. Instale dependencias: `npm run install:all`.
-4. Aplique el esquema: `npm run db:migrate`.
-5. Cree el primer superadministrador: `npm run db:seed-admin`.
-6. Inicie la API: `npm run dev:backend`.
-7. En otra terminal, inicie el frontend: `npm run dev:frontend`.
-8. Abra `http://localhost:5173`.
+1. Entra al panel administrador, abre **Configuración** y registra el correo de contacto (por ejemplo, `arte@universidad.edu.ec`).
+2. Si deseas **notificaciones reales por correo**, configura estas variables en el entorno del backend:
 
-También puede definir `frontend/.env` con `VITE_API_URL` si la API no está en `http://localhost:3000/api`.
+   ```env
+   SMTP_HOST=smtp.tu-proveedor.com
+   SMTP_PORT=587
+   SMTP_SECURE=false
+   SMTP_USER=usuario@tu-proveedor.com
+   SMTP_PASS=tu-clave-de-aplicacion
+   SMTP_FROM=usuario@tu-proveedor.com
+   ```
 
-## API REST
+3. Ejecuta `npm install` para instalar **Nodemailer** (dependencia opcional) y reinicia el servidor. Node.js no lee automáticamente los archivos `.env` en todas las versiones, por eso puedes iniciar con `node --env-file=backend/.env backend/src/server.js` en Node.js 20.6+ o establecer las variables por tu sistema operativo.
 
-| Método | Ruta | Uso |
-|---|---|---|
-| GET/POST | `/api/categories` | Listar, buscar y crear categorías |
-| GET/PUT | `/api/categories/:id` | Consultar y editar una categoría |
-| PATCH | `/api/categories/:id/status` | Activar/desactivar (`{"is_active": false}`) |
-| GET/POST | `/api/subcategories` | Filtrar por `category_id` y crear |
-| GET/PUT | `/api/subcategories/:id` | Consultar y editar |
-| PATCH | `/api/subcategories/:id/status` | Activar/desactivar |
-| GET/POST | `/api/artists` | Buscar/filtrar y registrar artistas |
-| GET/PUT | `/api/artists/:id` | Perfil y edición |
-| PATCH | `/api/artists/:id/academic-status` | Cambiar a `student` o `graduate` |
-| GET | `/api/artists/:id/works` | Obras asociadas |
+> No pongas contraseñas SMTP en archivos compartidos ni en GitHub. Si SMTP falla, los mensajes siguen almacenados en el buzón.
 
-Autenticación (`/api/auth/*`, `/api/admin-users`, `/api/audit-log`): ver [docs/API_CONVENCIONES.md](docs/API_CONVENCIONES.md#endpoints-de-autenticación).
+## Consejos para reemplazar un proyecto anterior
 
-Filtros de artistas: `academic_status`, `search`, `category_id` y `subcategory_id`.
+Esta entrega es **una implementación completa e independiente**, no una modificación línea por línea del repositorio original de GitHub, ya que no se pudo descargar su contenido desde este entorno. Respeta la separación en `frontend` y `backend`, pero usa Node.js sin PostgreSQL para facilitar la ejecución local.
 
-## Integración
+1. **Haz una copia de seguridad** del proyecto anterior y de cualquier base de datos.
+2. Crea una carpeta nueva y extrae este ZIP ahí. **No sobrescribas una instalación anterior con datos** si no has respaldado sus archivos.
+3. Ejecuta `npm start` desde la carpeta raíz.
+4. Comprueba el inicio de sesión del administrador y crea una cuenta nueva.
+5. Si ya tenías información en PostgreSQL, necesitarás una migración específica: esta versión NO la importa automáticamente.
 
-- **Desarrollador 1:** las escrituras (`POST`, `PUT`, `PATCH`) de categorías, subcategorías y artistas exigen sesión con el permiso `catalog:write`; los `GET` siguen siendo públicos. Ver [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md#4-autenticación-y-autorización).
-- **Desarrollador 2:** `works` es un contrato mínimo de integración con `artist_id`, `category_id`, `subcategory_id` y `title`. El módulo multimedia y los demás campos de obras deben permanecer en su módulo; puede ampliar esta tabla o migrar sus datos respetando las claves foráneas. PostgreSQL valida que la subcategoría pertenezca a la categoría indicada.
-- **Desarrollador 4:** la interfaz administrativa puede montarse como una sección del panel existente; las páginas consumen únicamente la API.
-- **Desarrollador 5:** el frontend público puede reutilizar los endpoints GET para filtros y perfiles, sin usar endpoints administrativos de escritura.
-
-Las categorías y subcategorías usan `ON DELETE RESTRICT` para impedir pérdidas accidentales de información relacionada. Un estudiante se gradúa actualizando el mismo registro, conservando su id y sus obras.
+Para conservar los datos de **esta** versión al cambiar de computadora, respalda `backend/data/repositorio.json` y las imágenes de `backend/uploads/`.
 
 ## Pruebas
 
-Ejecute `npm test` para las pruebas unitarias y de protección de rutas (no requieren base de datos). Las operaciones de integración requieren PostgreSQL configurado y pueden verificarse con los endpoints descritos arriba; este repositorio no incluye credenciales ni una base remota.
+Desde la raíz:
+
+```bash
+npm test
+```
+
+Las pruebas comprueban registro, ingreso del admin, control de permisos, creación de categorías, subcategorías, artistas y obras, premio, exposición, venta, graduación y mensajes.
+
+## Consideraciones técnicas
+
+- Contraseñas almacenadas con PBKDF2-SHA256 y sal aleatoria; no se guardan contraseñas de usuarios en texto plano.
+- Tokens de sesión aleatorios con expiración a siete días; las rutas de administración verifican el rol en el servidor.
+- Archivos de imagen PNG/JPEG/WEBP de máximo 5 MB.
+- Persistencia JSON local para uso académico. Para múltiples servidores y alta concurrencia se recomienda una base de datos SQL.
+- Sin imágenes o datos inventados de obras: el repositorio comienza con categorías de ejemplo y las obras se agregan desde el panel administrador.

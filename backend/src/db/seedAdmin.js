@@ -2,13 +2,17 @@
 // Uso: definir ADMIN_EMAIL, ADMIN_PASSWORD y ADMIN_NAME en backend/.env y ejecutar
 //      npm run db:seed-admin
 // No hay credenciales por defecto en el código.
-import { hashPassword, validatePasswordStrength } from '../auth/password.js';
+import { hashPassword } from '../auth/password.js';
 import { validateEmail } from '../validators/index.js';
 import { pool } from './pool.js';
 
 async function seed() {
-  const email = validateEmail(process.env.ADMIN_EMAIL);
-  const password = validatePasswordStrength(process.env.ADMIN_PASSWORD);
+  const configuredEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
+  const email = configuredEmail === 'admin'
+    ? 'admin@localhost.local'
+    : validateEmail(configuredEmail);
+  const password = process.env.ADMIN_PASSWORD?.trim();
+  if (!password) throw new Error('ADMIN_PASSWORD es obligatorio');
   const name = process.env.ADMIN_NAME?.trim() || 'Administrador';
 
   const { rows } = await pool.query(

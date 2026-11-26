@@ -9,5 +9,9 @@ router.get('/:id', asyncHandler(async (req, res) => res.json(await service.getAr
 router.post('/', asyncHandler(async (req, res) => res.status(201).json(await service.createArtist(req.body))));
 router.put('/:id', asyncHandler(async (req, res) => res.json(await service.updateArtist(req.params.id, req.body))));
 router.patch('/:id/academic-status', asyncHandler(async (req, res) => res.json(await service.updateAcademicStatus(req.params.id, req.body.academic_status))));
+router.patch('/:id/status', asyncHandler(async (req, res) => res.json(await service.updateArtistStatus(req.params.id, req.body.status))));
+router.delete('/:id', asyncHandler(async (req, res) => {
+  await service.deleteArtist(req.params.id);
+  res.status(204).end();
+}));
 export default router;
-

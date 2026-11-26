@@ -32,7 +32,7 @@ router.put('/:id', asyncHandler(async (req, res) => {
 }));
 
 router.patch('/:id/status', asyncHandler(async (req, res) => {
-  const status = validatePublicationStatus(req.body?.publication_status);
+  const status = validatePublicationStatus(req.body?.publication_status ?? req.body?.status);
   res.json(await service.setPublicationStatus(idParam(req.params.id), status));
 }));
 
